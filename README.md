@@ -1,51 +1,53 @@
 # Customer Support CRM
 
-نظام دعم العملاء — ASP.NET Core 10 + SQL Server backend, Vue 3 frontend, Arabic-first with
-full RTL. Requirements come from `docs/requirements.md` (transcribed from
-`azm_squad_customer_support_crm.pdf`), and the work is planned through
+An Arabic-first customer support system with full RTL: ASP.NET Core 10 + SQL Server on the
+back end, Vue 3 on the front end. Requirements live in `docs/requirements.md` (transcribed
+from `azm_squad_customer_support_crm.pdf`), and the remaining work is planned through
 [squad-kit](https://github.com/AzmSquad/squad-kit) under `.squad/`.
 
 ---
 
-## 1. المتطلبات
+## 1. Prerequisites
 
 | | |
 |---|---|
 | .NET SDK | 10.0+ (`dotnet --list-sdks`) |
 | Node.js | 20+ (`node -v`) |
-| SQL Server | Express محلي على `.\SQLEXPRESS` |
+| SQL Server | Express, local, at `.\SQLEXPRESS` |
 | `dotnet-ef` | `dotnet tool install --global dotnet-ef` |
 
 ---
 
-## 2. التشغيل
+## 2. Running the app
 
-### أول مرة: اضبط ملف التطوير
+### First time: create your development config
 
-الملف ده مستبعد من git لأنه بيحمل مفتاح توقيع الـ JWT وباسورد الأدمن:
+This file is git-ignored because it holds the JWT signing key and the seed admin password:
 
 ```bash
 cp backend/src/CustomerSupportCRM.Api/appsettings.Development.example.json backend/src/CustomerSupportCRM.Api/appsettings.Development.json
 ```
 
-بعدها افتحه وغيّر القيمتين المعلَّمتين بـ `REPLACE-ME`:
+Then open it and replace the two values marked `REPLACE-ME`:
 
-- **`Jwt:SigningKey`** — 32 حرف على الأقل. التطبيق **بيرفض يشتغل** لو أقصر من كده أو فاضي
-- **`Seed:AdminPassword`** — باسورد الأدمن اللي هيتعمل أول تشغيل
+- **`Jwt:SigningKey`** — at least 32 characters. The app **refuses to start** with a
+  shorter or empty key.
+- **`Seed:AdminPassword`** — the administrator created on first run. There is no fallback:
+  leave it unset and no admin is created, and the log says why.
 
-### الباك إند + Swagger
+### Back end + Swagger
 
 ```bash
 dotnet run --project backend/src/CustomerSupportCRM.Api --launch-profile http
 ```
 
-- بيفتح **Swagger** تلقائياً على <http://localhost:5178/swagger>
-- الـ API نفسه على <http://localhost:5178>
-- `GET /health` للتأكد إن الخدمة شغالة
+- Opens **Swagger** automatically at <http://localhost:5178/swagger>
+- API root: <http://localhost:5178>
+- `GET /health` confirms the service is up
 
-### الفرونت إند
+### Front end
 
-في terminal تانية:
+In a second terminal:
 
 ```bash
 npm install --prefix frontend
@@ -55,54 +57,54 @@ npm install --prefix frontend
 npm run dev --prefix frontend
 ```
 
-التطبيق على <http://localhost:5173>. الـ Vite proxy بيحوّل `/api` للباك إند، فالمتصفح
-يفضل same-origin ومحتاجش CORS.
+The app runs at <http://localhost:5173>. Vite proxies `/api` to the back end, so the
+browser stays same-origin and no CORS preflight is involved in development.
 
-### بيانات الدخول
+### Signing in
 
-الإيميل والباسورد اللي حطيتهم في `Seed:AdminEmail` و `Seed:AdminPassword` في
-`appsettings.Development.json` وقت الإعداد فوق.
+Use the email and password you set in `Seed:AdminEmail` and `Seed:AdminPassword` during
+setup above.
 
 ---
 
-## 3. الميجريشن — بيتنفّذ تلقائياً وقت التشغيل
+## 3. Migrations apply automatically on run
 
-في بيئة **Development** كل ميجريشن جديد يُطبَّق أول ما تشغّل المشروع، ومعاه seeding
-البيانات المرجعية. اللوج بيقول لك بالاسم إيه اللي اتنفّذ:
+In **Development**, every pending migration is applied when the project starts, along with
+reference-data seeding. The log names exactly what ran:
 
 ```
 [17:33:51 WRN] Applying 1 pending migration(s): 20260825141752_SystemConfiguration
 [17:33:52 WRN] Applied 1 migration(s) successfully.
 ```
 
-ولو مافيش جديد:
+And when there is nothing to do:
 
 ```
 [17:34:02 INF] Database is up to date; no migrations to apply.
 ```
 
-المفاتيح في `appsettings.Development.json`:
+The switches live in `appsettings.Development.json`:
 
 ```jsonc
 "Database": {
-  "MigrateOnStartup": true,   // يطبّق أي ميجريشن ناقص
-  "SeedOnStartup": true       // أدوار + أدمن + أقسام + فروع + تصنيفات + إعدادات
+  "MigrateOnStartup": true,   // apply any pending migration
+  "SeedOnStartup": true       // roles, admin, departments, branches, categories, config
 }
 ```
 
-**في `appsettings.json` الاتنين `false` عن قصد.** التطبيق التلقائي على قاعدة مشتركة أو
-إنتاج بيتسابق بين النسخ ومايدّي فرصة لمراجعة الـ deploy، فالبيئات دي تطبّق الميجريشن
-كخطوة مقصودة.
+**Both are `false` in `appsettings.json` on purpose.** Auto-migrating a shared or
+production database races between instances and gives a deploy no chance to be reviewed, so
+those environments apply migrations as a deliberate step.
 
-### إضافة ميجريشن جديد
+### Adding a migration
 
 ```bash
 dotnet ef migrations add <MigrationName> --project backend/src/CustomerSupportCRM.Infrastructure --startup-project backend/src/CustomerSupportCRM.Api --output-dir Persistence/Migrations
 ```
 
-وبعدها شغّل المشروع عادي — هيتطبّق لوحده.
+Then just run the project — it applies itself.
 
-### تطبيق يدوي (للإنتاج)
+### Applying manually (for production)
 
 ```bash
 dotnet ef database update --project backend/src/CustomerSupportCRM.Infrastructure --startup-project backend/src/CustomerSupportCRM.Api
@@ -110,75 +112,86 @@ dotnet ef database update --project backend/src/CustomerSupportCRM.Infrastructur
 
 ---
 
-## 4. إزاي تختبر اللي اتعمل
+## 4. Trying out what is built
 
-كل الـ endpoints موجودة في Swagger. للمحمي منها لازم توكن:
+Every endpoint is in Swagger. Protected ones need a token:
 
-1. في Swagger افتح **`POST /api/auth/login`** → Try it out → ابعت:
+1. In Swagger open **`POST /api/auth/login`** → Try it out → send:
    ```json
    { "email": "<Seed:AdminEmail>", "password": "<Seed:AdminPassword>" }
    ```
-2. انسخ `accessToken` من الرد.
-3. اضغط زرار **Authorize** فوق على اليمين، والصق التوكن.
-4. دلوقتي كل الـ endpoints شغالة.
+2. Copy `accessToken` from the response.
+3. Click **Authorize** (top right) and paste the token.
+4. Every endpoint is now callable.
 
-> التوكن بيخلص بعد **15 دقيقة** عن قصد — الصلاحيات محفوظة جوّاه، فسحب صلاحية أو تعطيل
-> حساب مايسريش قبل انتهاء التوكن، والـ 15 دقيقة هي الحد الأعلى للتأخير. لو خلص، اعمل
-> login تاني أو استخدم `POST /api/auth/refresh`.
+> The token expires after **15 minutes** by design: the permission set is cached inside the
+> JWT, so revoking a permission or deactivating an account cannot take effect any sooner
+> than the token expires. Fifteen minutes is the upper bound on that delay. When it lapses,
+> log in again or use `POST /api/auth/refresh`.
 
-### اللي يستحق تجربته
+### Worth exercising
 
-**إدارة المستخدمين والحمايات** — `/api/users`
-- `POST /api/users` — أنشئ موظف دعم بدور `Agent` وقسم
-- `POST /api/users/{yourOwnId}/deactivate` → **409** (مش ممكن تعطّل نفسك)
-- `PUT /api/users/{adminId}/roles` بـ `["Manager"]` → **409** (آخر أدمن)
-- جرّب دور `["Customer","Agent"]` → **400** (ممنوع الجمع)
+**User administration and its lockout rails** — `/api/users`
 
-**عزل الأقسام** — الجزء الأمني الأهم
-1. أنشئ موظفين، واحد في `SUP` وواحد في `BIL`
-2. سجّل دخول بكل واحد وخُد توكنه
-3. أنشئ عميل + تذكرة في كل قسم (بحساب الأدمن، لأنه يشوف الكل)
-4. موظف `SUP` يعمل `GET /api/tickets` → يشوف تذكرته بس
-5. موظف `SUP` يعمل `GET /api/tickets/{تذكرة BIL}` → **403**
+| Try | Expected |
+|---|---|
+| `POST /api/users` with role `Agent` and a department | 201 |
+| `POST /api/users/{your own id}/deactivate` | **409** — you cannot deactivate yourself |
+| `PUT /api/users/{admin id}/roles` with `["Manager"]` | **409** — last administrator |
+| Create a user with roles `["Customer","Agent"]` | **400** — the combination is refused |
 
-**الصلاحيات** — بتوكن `Agent`:
+**Department scoping** — the security-critical part
 
-| Endpoint | المتوقع |
+1. Create two agents, one in `SUP` and one in `BIL`.
+2. Sign in as each and keep their tokens.
+3. As the admin (who sees everything), create a customer and a ticket in each department.
+4. The `SUP` agent calls `GET /api/tickets` → sees only their own department's ticket.
+5. The `SUP` agent calls `GET /api/tickets/{the BIL ticket}` → **403**.
+
+**Permissions** — with an `Agent` token:
+
+| Endpoint | Expected |
 |---|---|
 | `/api/tickets`, `/api/customers`, `/api/dashboard/agent` | 200 |
 | `/api/users`, `/api/audit-logs`, `/api/system-config/**` | **403** |
 | `DELETE /api/customers/{id}`, `PUT /api/branding` | **403** |
 
-**سجل التدقيق** — `/api/audit-logs`
-- أي تعديل بيتسجّل تلقائياً مع JSON diff
-- عدّل عميل، وبعدها `GET /api/audit-logs?entityName=Customer`
-- GET فقط — مافيش أي verb كتابة عن قصد
+**Audit log** — `/api/audit-logs`
 
-**أسرار القنوات (write-only)**
-1. `PUT /api/system-config/channels/1` بـ `apiKey`
-2. `GET /api/system-config/channels` → `hasCredentials: true` بس **المفتاح نفسه مايرجعش**
-3. `PUT` تاني **بدون** `apiKey` → القيمة المحفوظة تفضل موجودة
-4. `GET /api/audit-logs?entityName=ChannelToggle` → السر مش موجود في السجل
+- Every change is recorded automatically with a JSON diff.
+- Edit a customer, then `GET /api/audit-logs?entityName=Customer`.
+- GET verbs only — there is deliberately no write path.
 
-**الهوية البصرية** — `/api/branding`
-- `GET` بدون توكن (شاشة الدخول محتاجاها قبل التوكن)
-- `PUT` باللون `#7c3aed` → حدّث المتصفح، اللون بيتغير فوراً
-- جرّب `"primaryColor": "not-a-colour"` → **400**
-- جرّب `"logoUrl": "javascript:alert(1)"` → **400**
+**Write-only channel credentials**
 
-### من واجهة التطبيق
+1. `PUT /api/system-config/channels/1` with an `apiKey`.
+2. `GET /api/system-config/channels` → `hasCredentials: true`, but **the key itself is
+   never returned**.
+3. `PUT` again **without** `apiKey` → the stored value survives.
+4. `GET /api/audit-logs?entityName=ChannelToggle` → the secret is absent from the trail.
 
-بعد الدخول كأدمن، الشريط الجانبي فيه 6 بنود:
-لوحة المتابعة · التذاكر · العملاء · المستخدمون والصلاحيات · سجل التدقيق · إعدادات النظام
+**Branding** — `/api/branding`
 
-الثلاثة الأخيرة تظهر بالصلاحية بس — لو دخلت بـ `Agent` مش هتلاقيهم، ولو كتبت الرابط
-بإيدك الـ router هيرجّعك (والـ API كمان هيرفض).
+- `GET` works unauthenticated (the login screen needs it before anyone has a token).
+- `PUT` with `"primaryColor": "#7c3aed"` → refresh the browser, the colour changes at once.
+- `"primaryColor": "not-a-colour"` → **400**.
+- `"logoUrl": "javascript:alert(1)"` → **400**.
 
-جرّب كمان: زرار **EN/ع** فوق يقلب اللغة والاتجاه كامل، وزرار القمر/الشمس للثيم.
+### From the UI
+
+Signed in as an administrator, the sidebar shows six entries: Dashboard, Tickets,
+Customers, Users & permissions, Audit log, System settings.
+
+The last three appear only with the matching permission. Sign in as an `Agent` and they are
+gone; type the URL by hand and the router sends you back — and the API refuses regardless,
+because hiding a control is never the security boundary.
+
+Also try the **EN/ع** button in the top bar: it flips language and mirrors the entire
+layout. The sun/moon button toggles the theme.
 
 ---
 
-## 5. أوامر التحقق
+## 5. Verification
 
 ```bash
 dotnet test backend/CustomerSupportCRM.slnx
@@ -188,36 +201,50 @@ dotnet test backend/CustomerSupportCRM.slnx
 npm run build --prefix frontend
 ```
 
-`npm run build` بيشغّل حارس الترجمة قبل البناء — لو مفتاح موجود في لغة وناقص في التانية،
-أو `{placeholder}` مختلف، البناء يفشل.
+`npm run build` runs the locale guard before building: if a key exists in one catalogue and
+not the other, or a `{placeholder}` differs between languages, the build fails.
 
 ---
 
-## 6. هيكل المشروع
+## 6. Layout
 
 ```
 backend/
-  CustomerSupportCRM.slnx                     (.NET 10 — .slnx مش .sln)
-  src/CustomerSupportCRM.Domain/              الكيانات وقواعد سير التذكرة، بدون أي اعتماديات
-  src/CustomerSupportCRM.Application/         DTOs، الخدمات، الـ validators، الواجهات
-  src/CustomerSupportCRM.Infrastructure/      EF Core، Identity، JWT، التخزين، الـ seeder
-  src/CustomerSupportCRM.Api/                 الـ controllers، الـ middleware، DI، Swagger
-  tests/CustomerSupportCRM.Application.Tests/ 117 اختبار
+  CustomerSupportCRM.slnx                     .NET 10 — note .slnx, not .sln
+  src/CustomerSupportCRM.Domain/              entities and ticket workflow, no dependencies
+  src/CustomerSupportCRM.Application/         DTOs, services, validators, interfaces
+  src/CustomerSupportCRM.Infrastructure/      EF Core, Identity, JWT, storage, seeder
+  src/CustomerSupportCRM.Api/                 controllers, middleware, DI, Swagger
+  tests/CustomerSupportCRM.Application.Tests/ 117 tests
 frontend/                                     Vue 3 + Vite + TS + PrimeVue 5 + Tailwind 4
-docs/requirements.md                          نص متطلبات الـ PDF
-.squad/                                       قصص وخطط squad-kit
+docs/requirements.md                          the PDF requirements, as text
+.squad/                                       squad-kit stories and plans
 ```
+
+### Conventions worth knowing before contributing
+
+- **English only** in code comments, documentation and commit messages. Arabic appears in
+  the repository solely as product data: `locales/ar.json`, the `NameAr` seed values, and
+  Arabic test fixtures.
+- Entities derive from `AuditableEntity`; the persistence interceptor stamps the audit
+  columns and writes the trail. Never set them by hand.
+- Authorise against `Permissions.*`, never a role name.
+- List endpoints return `PagedResult<T>` and take a query deriving from `PagedQuery`.
+- Throw the exceptions in `AppExceptions.cs`; the middleware maps them to RFC 7807.
+- Every user-visible string is a key in **both** `locales/ar.json` and `locales/en.json`.
+- Use Tailwind logical properties (`ms-*`, `me-*`, `text-start`) so RTL mirrors correctly.
 
 ---
 
-## 7. حالة العمل
+## 7. Status
 
-**منفَّذ:** إدارة المستخدمين · نموذج الصلاحيات (21 صلاحية) · سجل التدقيق · إعدادات النظام
-(ساعات العمل، العطل، الهوية البصرية، مفاتيح المزايا، القنوات) · تغيير كلمة المرور ·
-عزل الأقسام · العملاء والتذاكر (الأساس) · لوحة متابعة الموظف · حارس الترجمة
+**Implemented:** user administration · permission model (21 permissions) · audit log ·
+system configuration (business hours, holidays, branding, feature flags, channels) ·
+self-service password change · department and branch scoping · customers and tickets
+(foundation) · agent dashboard · locale-drift guard.
 
-**12 قصة** في `.squad/stories/`، منها **خطتان** منفَّذتان (`security-admin`, `platform`).
-باقي 10 مناطق محتاجة خطة قبل التنفيذ:
+**12 stories** live in `.squad/stories/`, of which **two plans** are generated and
+implemented (`security-admin`, `platform`). The other ten areas need a plan first:
 
 ```bash
 squad new-plan .squad/stories/<feature>/<story>/intake.md --api -y
@@ -227,5 +254,5 @@ squad new-plan .squad/stories/<feature>/<story>/intake.md --api -y
 squad list
 ```
 
-التفاصيل الكاملة لكل خطة — اللي نزل، الانحرافات وأسبابها، واللي فاضل — في
-`.squad/plans/<feature>/00-overview.md`.
+Each plan's `00-overview.md` records what landed, which deviations were made and why, and
+what was deliberately left out.
