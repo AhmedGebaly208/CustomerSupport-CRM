@@ -20,6 +20,12 @@ public sealed class TicketQuery : PagedQuery
     /// <summary>True = tickets with no assignee, for the unassigned queue.</summary>
     public bool? Unassigned { get; set; }
 
+    /// <summary>Match tickets carrying any of these tags.</summary>
+    public Guid[]? TagIds { get; set; }
+
+    /// <summary>Tickets the given user watches. Used by the "watching" filter.</summary>
+    public Guid? WatchedBy { get; set; }
+
     public DateTimeOffset? CreatedFrom { get; set; }
     public DateTimeOffset? CreatedTo { get; set; }
 }
@@ -80,7 +86,10 @@ public sealed record TicketDetailDto(
     DateTimeOffset? ClosedAt,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ModifiedAt,
-    IReadOnlyList<TicketStatus> AllowedNextStatuses);
+    IReadOnlyList<TicketStatus> AllowedNextStatuses,
+    IReadOnlyList<TagDto> Tags,
+    IReadOnlyList<WatcherDto> Watchers,
+    IReadOnlyList<TicketLinkDto> Links);
 
 public sealed record CreateTicketRequest(
     Guid CustomerId,

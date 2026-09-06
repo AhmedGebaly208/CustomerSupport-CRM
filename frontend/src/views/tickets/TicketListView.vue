@@ -9,13 +9,26 @@ import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import MultiSelect from 'primevue/multiselect'
 import ToggleButton from 'primevue/togglebutton'
+import Chip from 'primevue/chip'
+import Dialog from 'primevue/dialog'
+import MultiSelectTags from 'primevue/multiselect'
+import InputTextName from 'primevue/inputtext'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
-import { ticketsApi } from '@/api/services'
+import TicketBulkBar from '@/components/TicketBulkBar.vue'
+import { savedViewsApi, ticketsApi } from '@/api/services'
 import { problemMessage } from '@/api/client'
 import { useUiStore } from '@/stores/ui'
 import { useFormat } from '@/composables/useFormat'
-import { TicketPriority, TicketStatus, type PagedResult, type TicketListItem } from '@/types/api'
+import { useAuthStore } from '@/stores/auth'
+import {
+  TicketPriority,
+  TicketStatus,
+  type PagedResult,
+  type SavedView,
+  type Tag,
+  type TicketListItem,
+} from '@/types/api'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -23,8 +36,21 @@ const toast = useToast()
 const ui = useUiStore()
 const { formatDateTime, isOverdue } = useFormat()
 
+const auth = useAuthStore()
+
 const result = ref<PagedResult<TicketListItem> | null>(null)
 const loading = ref(true)
+
+/** Rows ticked in the table; drives the bulk bar. */
+const selection = ref<TicketListItem[]>([])
+
+const tagOptions = ref<Tag[]>([])
+const tagIds = ref<string[]>([])
+const watchedByMe = ref(false)
+
+const savedViews = ref<SavedView[]>([])
+const savedViewName = ref('')
+const showSaveView = ref(false)
 
 const search = ref('')
 const statuses = ref<TicketStatus[]>([])
@@ -59,6 +85,8 @@ async function load() {
       priorities: priorities.value.length ? priorities.value : undefined,
       onlyActive: onlyActive.value ? true : undefined,
       unassigned: onlyUnassigned.value ? true : undefined,
+      tagIds: tagIds.value.length ? tagIds.value : undefined,
+      watchedBy: watchedByMe.value ? auth.user?.id : undefined,
     })
   } catch (e) {
     toast.add({ severity: 'error', summary: problemMessage(e, t('error.loadFailed')), life: 5000 })
@@ -75,10 +103,72 @@ watch(search, () => {
   }, 350)
 })
 
-watch([statuses, priorities, onlyActive, onlyUnassigned], () => {
+watch([statuses, priorities, onlyActive, onlyUnassigned, tagIds, watchedByMe], () => {
   page.value = 1
   load()
 })
+
+/**
+ * Saved views round-trip the filter state as an opaque JSON blob. The server stores it
+ * without interpreting it, so adding a filter here needs no backend change.
+ */
+function currentFilters(): string {
+  return JSON.stringify({
+    search: search.value,
+    statuses: statuses.value,
+    priorities: priorities.value,
+    onlyActive: onlyActive.value,
+    onlyUnassigned: onlyUnassigned.value,
+    tagIds: tagIds.value,
+    watchedByMe: watchedByMe.value,
+  })
+}
+
+function applySavedView(view: SavedView) {
+  try {
+    const f = JSON.parse(view.filtersJson)
+    search.value = f.search ?? ''
+    statuses.value = f.statuses ?? []
+    priorities.value = f.priorities ?? []
+    onlyActive.value = f.onlyActive ?? false
+    onlyUnassigned.value = f.onlyUnassigned ?? false
+    tagIds.value = f.tagIds ?? []
+    watchedByMe.value = f.watchedByMe ?? false
+    page.value = 1
+    load()
+  } catch {
+    toast.add({ severity: 'error', summary: t('ticket.savedViews.corrupt'), life: 5000 })
+  }
+}
+
+async function saveCurrentView() {
+  const name = savedViewName.value.trim()
+  if (!name) return
+
+  try {
+    await savedViewsApi.upsert(name, currentFilters())
+    savedViews.value = await savedViewsApi.list()
+    savedViewName.value = ''
+    showSaveView.value = false
+    toast.add({ severity: 'success', summary: t('ticket.savedViews.saved'), life: 3000 })
+  } catch (e) {
+    toast.add({ severity: 'error', summary: problemMessage(e, t('error.saveFailed')), life: 5000 })
+  }
+}
+
+async function deleteSavedView(view: SavedView) {
+  try {
+    await savedViewsApi.remove(view.id)
+    savedViews.value = savedViews.value.filter((v) => v.id !== view.id)
+  } catch (e) {
+    toast.add({ severity: 'error', summary: problemMessage(e, t('error.generic')), life: 5000 })
+  }
+}
+
+function onBulkApplied() {
+  selection.value = []
+  load()
+}
 
 function onPage(event: DataTablePageEvent) {
   page.value = event.page + 1
@@ -92,7 +182,12 @@ function onSort(event: DataTableSortEvent) {
   load()
 }
 
-onMounted(load)
+onMounted(async () => {
+  const [views, tags] = await Promise.allSettled([savedViewsApi.list(), ticketsApi.searchTags()])
+  if (views.status === 'fulfilled') savedViews.value = views.value
+  if (tags.status === 'fulfilled') tagOptions.value = tags.value
+  await load()
+})
 </script>
 
 <template>
@@ -157,7 +252,55 @@ onMounted(load)
         on-icon="pi pi-user-minus"
         off-icon="pi pi-user"
       />
+
+      <ToggleButton
+        v-model="watchedByMe"
+        :on-label="t('ticket.watching')"
+        :off-label="t('ticket.watching')"
+        on-icon="pi pi-eye"
+        off-icon="pi pi-eye-slash"
+      />
+
+      <MultiSelectTags
+        v-model="tagIds"
+        :options="tagOptions"
+        option-label="name"
+        option-value="id"
+        :placeholder="t('ticket.tags')"
+        :max-selected-labels="2"
+        filter
+        class="min-w-[11rem]"
+      />
     </div>
+
+    <!-- Saved views -->
+    <div class="mb-4 flex flex-wrap items-center gap-2">
+      <span class="text-sm text-surface-500 dark:text-surface-400">{{ t('ticket.savedViews.title') }}</span>
+
+      <Chip
+        v-for="view in savedViews"
+        :key="view.id"
+        :label="view.name"
+        removable
+        class="cursor-pointer"
+        @click="applySavedView(view)"
+        @remove="deleteSavedView(view)"
+      />
+
+      <Button
+        icon="pi pi-bookmark"
+        :label="t('ticket.savedViews.save')"
+        text
+        size="small"
+        @click="showSaveView = true"
+      />
+    </div>
+
+    <TicketBulkBar
+      :selection="selection"
+      @applied="onBulkApplied"
+      @clear="selection = []"
+    />
 
     <div class="rounded-xl border border-surface-200 bg-surface-0 dark:border-surface-800 dark:bg-surface-900">
       <DataTable
@@ -176,8 +319,10 @@ onMounted(load)
         class="cursor-pointer"
         @page="onPage"
         @sort="onSort"
+        v-model:selection="selection"
         @row-click="(e: { data: TicketListItem }) => router.push({ name: 'ticket-detail', params: { id: e.data.id } })"
       >
+        <Column selection-mode="multiple" header-style="width: 3rem" />
         <template #empty>
           <div class="p-6 text-center text-surface-500 dark:text-surface-400">{{ t('app.noData') }}</div>
         </template>
@@ -232,5 +377,17 @@ onMounted(load)
         </Column>
       </DataTable>
     </div>
+
+    <Dialog v-model:visible="showSaveView" modal :header="t('ticket.savedViews.save')" :style="{ width: '26rem' }">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">{{ t('ticket.savedViews.name') }}</label>
+        <InputTextName v-model="savedViewName" class="w-full" @keyup.enter="saveCurrentView" />
+        <small class="text-surface-500 dark:text-surface-400">{{ t('ticket.savedViews.hint') }}</small>
+      </div>
+      <template #footer>
+        <Button :label="t('app.cancel')" outlined @click="showSaveView = false" />
+        <Button :label="t('app.save')" :disabled="!savedViewName.trim()" @click="saveCurrentView" />
+      </template>
+    </Dialog>
   </div>
 </template>

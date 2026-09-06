@@ -17,6 +17,7 @@ import TabPanel from 'primevue/tabpanel'
 import Dialog from 'primevue/dialog'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
+import TicketSidePanels from '@/components/TicketSidePanels.vue'
 import { authApi, ticketsApi } from '@/api/services'
 import { problemMessage } from '@/api/client'
 import { useUiStore } from '@/stores/ui'
@@ -266,6 +267,8 @@ onMounted(load)
         </div>
       </section>
 
+      <div class="grid gap-5 lg:grid-cols-[1fr_20rem]">
+      <div class="min-w-0">
       <Tabs value="comments">
         <TabList>
           <Tab value="comments">{{ t('ticket.comments') }}</Tab>
@@ -354,6 +357,10 @@ onMounted(load)
           </TabPanel>
         </TabPanels>
       </Tabs>
+      </div>
+
+      <TicketSidePanels :ticket="ticket" @changed="(t) => (ticket = t)" />
+      </div>
 
       <!-- Status change -->
       <Dialog

@@ -287,6 +287,9 @@ export interface TicketDetail {
   modifiedAt: string | null
   /** Populated by the server from the domain workflow — drives which status buttons render. */
   allowedNextStatuses: TicketStatus[]
+  tags: Tag[]
+  watchers: Watcher[]
+  links: TicketLink[]
 }
 
 export interface CreateTicketRequest {
@@ -412,6 +415,73 @@ export interface ChannelToggle {
   endpoint: string | null
   /** Whether a credential is stored. The value itself is never returned by the API. */
   hasCredentials: boolean
+}
+
+
+// ---- Ticket operations (area 2) ----
+
+export enum TicketLinkType {
+  DuplicateOf = 0,
+  RelatedTo = 1,
+  Blocks = 2,
+}
+
+export interface Tag {
+  id: string
+  name: string
+  colorHex: string | null
+}
+
+export interface Watcher {
+  userId: string
+  displayName: string
+}
+
+export interface TicketLink {
+  id: string
+  type: TicketLinkType
+  /** True when this ticket is the source; the DTO's other* fields are always the far end. */
+  isOutgoing: boolean
+  otherTicketId: string
+  otherTicketNumber: string
+  otherTicketSubject: string
+  otherTicketStatus: TicketStatus
+}
+
+export interface BulkItemResult {
+  ticketId: string
+  succeeded: boolean
+  errorCode: string | null
+  errorMessage: string | null
+}
+
+export interface BulkOperationResult {
+  succeededCount: number
+  failedCount: number
+  items: BulkItemResult[]
+}
+
+export interface SavedView {
+  id: string
+  name: string
+  entityKind: string
+  /** Opaque to the server; this client owns the shape. */
+  filtersJson: string
+}
+
+export interface CategoryUpsertRequest {
+  nameAr: string
+  nameEn: string
+  parentId: string | null
+  departmentId: string | null
+  sortOrder: number
+  isActive: boolean
+}
+
+export interface CategoryReorderItem {
+  id: string
+  parentId: string | null
+  sortOrder: number
 }
 
 /** RFC 7807 problem response, as produced by the API's exception middleware. */

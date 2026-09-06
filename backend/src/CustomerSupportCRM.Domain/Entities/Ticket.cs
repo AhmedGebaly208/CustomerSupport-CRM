@@ -48,4 +48,12 @@ public class Ticket : AuditableEntity, IScopedEntity
     public ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
     public ICollection<TicketHistory> History { get; set; } = new List<TicketHistory>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();
+
+    public ICollection<TicketTag> TicketTags { get; set; } = new List<TicketTag>();
+    public ICollection<TicketWatcher> Watchers { get; set; } = new List<TicketWatcher>();
+
+    /// <summary>Links where this ticket is the source. A link is stored once; the detail
+    /// view unions outgoing and incoming so both sides render it.</summary>
+    public ICollection<TicketLink> OutgoingLinks { get; set; } = new List<TicketLink>();
+    public ICollection<TicketLink> IncomingLinks { get; set; } = new List<TicketLink>();
 }

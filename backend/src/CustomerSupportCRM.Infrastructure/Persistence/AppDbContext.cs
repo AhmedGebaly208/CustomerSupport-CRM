@@ -22,6 +22,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<TicketComment> TicketComments => Set<TicketComment>();
     public DbSet<TicketHistory> TicketHistory => Set<TicketHistory>();
 
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<TicketTag> TicketTags => Set<TicketTag>();
+    public DbSet<TicketWatcher> TicketWatchers => Set<TicketWatcher>();
+    public DbSet<TicketLink> TicketLinks => Set<TicketLink>();
+    public DbSet<UserSavedView> UserSavedViews => Set<UserSavedView>();
+
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

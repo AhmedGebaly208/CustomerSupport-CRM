@@ -105,6 +105,129 @@ public sealed class TicketsController(ITicketService tickets, ICurrentUser curre
     public async Task<ActionResult<IReadOnlyList<TicketHistoryDto>>> GetHistory(Guid id, CancellationToken ct) =>
         Ok(await tickets.GetHistoryAsync(id, ct));
 
+    // ---- Bulk operations ----
+    //
+    // Each returns a per-item result rather than failing the whole batch: an agent
+    // changing twenty tickets should keep the nineteen that worked. The endpoints reuse
+    // the single-ticket service methods, so workflow rules and scope checks still apply.
+
+    [HttpPost("bulk/assign")]
+    [Authorize(Policy = Permissions.Tickets.Assign)]
+    [ProducesResponseType<BulkOperationResult>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<BulkOperationResult>> BulkAssign(BulkAssignRequest request, CancellationToken ct) =>
+        Ok(await tickets.BulkAssignAsync(request, ct));
+
+    [HttpPost("bulk/priority")]
+    [Authorize(Policy = Permissions.Tickets.Edit)]
+    [ProducesResponseType<BulkOperationResult>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<BulkOperationResult>> BulkPriority(BulkPriorityRequest request, CancellationToken ct) =>
+        Ok(await tickets.BulkChangePriorityAsync(request, ct));
+
+    [HttpPost("bulk/status")]
+    [Authorize(Policy = Permissions.Tickets.Close)]
+    [ProducesResponseType<BulkOperationResult>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<BulkOperationResult>> BulkStatus(BulkStatusRequest request, CancellationToken ct) =>
+        Ok(await tickets.BulkChangeStatusAsync(request, ct));
+
+    // ---- Links ----
+
+    [HttpGet("{id:guid}/links")]
+    [ProducesResponseType<IReadOnlyList<TicketLinkDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TicketLinkDto>>> GetLinks(Guid id, CancellationToken ct) =>
+        Ok(await tickets.GetLinksAsync(id, ct));
+
+    [HttpPost("{id:guid}/links")]
+    [Authorize(Policy = Permissions.Tickets.Edit)]
+    [ProducesResponseType<IReadOnlyList<TicketLinkDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<IReadOnlyList<TicketLinkDto>>> AddLink(
+        Guid id, CreateTicketLinkRequest request, CancellationToken ct) =>
+        Ok(await tickets.AddLinkAsync(id, request, ct));
+
+    [HttpDelete("{id:guid}/links/{linkId:guid}")]
+    [Authorize(Policy = Permissions.Tickets.Edit)]
+    [ProducesResponseType<IReadOnlyList<TicketLinkDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TicketLinkDto>>> RemoveLink(
+        Guid id, Guid linkId, CancellationToken ct) =>
+        Ok(await tickets.RemoveLinkAsync(id, linkId, ct));
+
+    // ---- Merge ----
+
+    /// <summary>Folds this ticket into the target: comments, interactions and attachments
+    /// move across, and this ticket is closed with a history entry naming the target.
+    /// Returns the target.</summary>
+    [HttpPost("{id:guid}/merge")]
+    [Authorize(Policy = Permissions.Tickets.Close)]
+    [ProducesResponseType<TicketDetailDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<TicketDetailDto>> Merge(
+        Guid id, MergeTicketRequest request, CancellationToken ct) =>
+        Ok(await tickets.MergeAsync(id, request, ct));
+
+    // ---- Watchers ----
+
+    [HttpGet("{id:guid}/watchers")]
+    [ProducesResponseType<IReadOnlyList<WatcherDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<WatcherDto>>> GetWatchers(Guid id, CancellationToken ct) =>
+        Ok(await tickets.GetWatchersAsync(id, ct));
+
+    /// <summary>Adding yourself needs no special permission; adding a colleague is a
+    /// supervisory act and the service enforces that.</summary>
+    [HttpPost("{id:guid}/watchers")]
+    [ProducesResponseType<IReadOnlyList<WatcherDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<WatcherDto>>> AddWatcher(
+        Guid id, AddWatcherRequest request, CancellationToken ct) =>
+        Ok(await tickets.AddWatcherAsync(id, request, ct));
+
+    [HttpDelete("{id:guid}/watchers/{userId:guid}")]
+    [ProducesResponseType<IReadOnlyList<WatcherDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<WatcherDto>>> RemoveWatcher(
+        Guid id, Guid userId, CancellationToken ct) =>
+        Ok(await tickets.RemoveWatcherAsync(id, userId, ct));
+
+    // ---- Tags ----
+
+    [HttpGet("{id:guid}/tags")]
+    [ProducesResponseType<IReadOnlyList<TagDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TagDto>>> GetTags(Guid id, CancellationToken ct) =>
+        Ok(await tickets.GetTagsAsync(id, ct));
+
+    /// <summary>Tags are created lazily on first attach, so an agent can coin one while
+    /// working a ticket rather than visiting an admin screen first.</summary>
+    [HttpPost("{id:guid}/tags")]
+    [Authorize(Policy = Permissions.Tickets.Edit)]
+    [ProducesResponseType<IReadOnlyList<TagDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TagDto>>> AddTag(
+        Guid id, AddTagRequest request, CancellationToken ct) =>
+        Ok(await tickets.AddTagAsync(id, request, ct));
+
+    [HttpDelete("{id:guid}/tags/{tagId:guid}")]
+    [Authorize(Policy = Permissions.Tickets.Edit)]
+    [ProducesResponseType<IReadOnlyList<TagDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TagDto>>> RemoveTag(
+        Guid id, Guid tagId, CancellationToken ct) =>
+        Ok(await tickets.RemoveTagAsync(id, tagId, ct));
+
+    /// <summary>Tag autocomplete for the list filter and the detail page.</summary>
+    [HttpGet("/api/tags")]
+    [ProducesResponseType<IReadOnlyList<TagDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TagDto>>> SearchTags(
+        [FromQuery] string? query, CancellationToken ct) =>
+        Ok(await tickets.SearchTagsAsync(query, ct));
+
+    // ---- Escalation ----
+
+    /// <summary>Raises or lowers the escalation level by one. The reason is mandatory: an
+    /// escalation with no stated cause cannot be reviewed afterwards.</summary>
+    [HttpPost("{id:guid}/escalation")]
+    [Authorize(Policy = Permissions.Tickets.Edit)]
+    [ProducesResponseType<TicketDetailDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<TicketDetailDto>> ChangeEscalation(
+        Guid id, ChangeEscalationRequest request, CancellationToken ct) =>
+        Ok(await tickets.ChangeEscalationAsync(id, request, ct));
+
     // ---- Agent dashboard (area 4) ----
 
     /// <summary>Dashboard for the signed-in agent, or for another agent when a supervisor asks.</summary>

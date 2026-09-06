@@ -19,6 +19,12 @@ public interface IAppDbContext
     DbSet<TicketComment> TicketComments { get; }
     DbSet<TicketHistory> TicketHistory { get; }
 
+    DbSet<Tag> Tags { get; }
+    DbSet<TicketTag> TicketTags { get; }
+    DbSet<TicketWatcher> TicketWatchers { get; }
+    DbSet<TicketLink> TicketLinks { get; }
+    DbSet<UserSavedView> UserSavedViews { get; }
+
     DbSet<Department> Departments { get; }
     DbSet<Branch> Branches { get; }
     DbSet<AuditLog> AuditLogs { get; }

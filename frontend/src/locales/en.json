@@ -153,7 +153,51 @@
     "commentAdded": "Reply added",
     "overdue": "Overdue",
     "changedBy": "by",
-    "fieldChanged": "{field}: {from} → {to}"
+    "fieldChanged": "{field}: {from} → {to}",
+    "tags": "Tags",
+    "addTag": "Add a tag",
+    "noTags": "No tags",
+    "watchers": "Watchers",
+    "addWatcher": "Add a watcher",
+    "noWatchers": "No watchers",
+    "watch": "Watch",
+    "unwatch": "Unwatch",
+    "watching": "Watching",
+    "links": "Linked tickets",
+    "addLink": "Link a ticket",
+    "noLinks": "No linked tickets",
+    "searchToLink": "Search by number or subject",
+    "linkType": {
+      "DuplicateOf": "Duplicate of",
+      "RelatedTo": "Related to",
+      "Blocks": "Blocks"
+    },
+    "escalate": "Escalate",
+    "deEscalate": "De-escalate",
+    "escalationReason": "Reason",
+    "escalationReasonHint": "Required — an escalation with no stated cause cannot be reviewed later",
+    "merge": {
+      "action": "Merge into another ticket",
+      "target": "Target ticket",
+      "confirm": "Confirm merge",
+      "explain": "Replies, attachments and interaction history move to the target ticket, and this one is closed with a record of where it went.",
+      "done": "Merged into ticket {number}"
+    },
+    "bulk": {
+      "selected": "{count} selected",
+      "allSucceeded": "{count} ticket(s) updated",
+      "partialTitle": "Partly applied",
+      "partialBody": "{ok} succeeded, {failed} failed. The successful changes are saved.",
+      "reason": "Reason"
+    },
+    "savedViews": {
+      "title": "Saved views",
+      "save": "Save current view",
+      "name": "View name",
+      "hint": "Saving over an existing name replaces it",
+      "saved": "View saved",
+      "corrupt": "That saved view could not be read"
+    }
   },
   "status": {
     "New": "New",
@@ -310,5 +354,17 @@
     "noCredentials": "No credentials",
     "secretHint": "Leave the key field blank to keep the stored value. Stored keys are never displayed",
     "channelSaved": "Channel settings saved"
+  },
+  "category": {
+    "title": "Ticket categories",
+    "subtitle": "Add, reorder and deactivate categories",
+    "new": "New category",
+    "parent": "Parent category",
+    "sortOrder": "Order",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "deactivateHint": "A deactivated category disappears from pickers; existing tickets keep it",
+    "deleteConfirm": "Delete the category {name}?",
+    "saved": "Category saved"
   }
 }

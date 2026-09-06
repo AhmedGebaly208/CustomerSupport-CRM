@@ -1,6 +1,14 @@
 import { http } from './client'
 import type {
   Agent,
+  BulkOperationResult,
+  CategoryReorderItem,
+  CategoryUpsertRequest,
+  SavedView,
+  Tag,
+  TicketLink,
+  TicketLinkType,
+  Watcher,
   Branding,
   BusinessHoursDay,
   ChannelToggle,
@@ -178,6 +186,8 @@ export interface TicketQueryParams {
   branchId?: string | null
   onlyActive?: boolean | null
   unassigned?: boolean | null
+  tagIds?: string[]
+  watchedBy?: string | null
 }
 
 export const ticketsApi = {
@@ -228,6 +238,136 @@ export const ticketsApi = {
   async agentDashboard(agentId?: string | null) {
     const { data } = await http.get<AgentDashboard>('/dashboard/agent', { params: { agentId } })
     return data
+  },
+
+  // ---- Bulk operations ----
+  // Each resolves with a per-item result; a failed item does not fail the batch.
+
+  async bulkAssign(ticketIds: string[], agentId: string | null, note?: string | null) {
+    const { data } = await http.post<BulkOperationResult>('/tickets/bulk/assign', {
+      ticketIds,
+      agentId,
+      note: note ?? null,
+    })
+    return data
+  },
+  async bulkPriority(ticketIds: string[], priority: TicketPriority) {
+    const { data } = await http.post<BulkOperationResult>('/tickets/bulk/priority', { ticketIds, priority })
+    return data
+  },
+  async bulkStatus(ticketIds: string[], status: TicketStatus, note?: string | null) {
+    const { data } = await http.post<BulkOperationResult>('/tickets/bulk/status', {
+      ticketIds,
+      status,
+      note: note ?? null,
+    })
+    return data
+  },
+
+  // ---- Links ----
+
+  async links(id: string) {
+    const { data } = await http.get<TicketLink[]>(`/tickets/${id}/links`)
+    return data
+  },
+  async addLink(id: string, targetTicketId: string, type: TicketLinkType) {
+    const { data } = await http.post<TicketLink[]>(`/tickets/${id}/links`, { targetTicketId, type })
+    return data
+  },
+  async removeLink(id: string, linkId: string) {
+    const { data } = await http.delete<TicketLink[]>(`/tickets/${id}/links/${linkId}`)
+    return data
+  },
+
+  // ---- Merge ----
+
+  /** Returns the target ticket; this ticket is closed and its content moved across. */
+  async merge(id: string, targetTicketId: string, reason?: string | null) {
+    const { data } = await http.post<TicketDetail>(`/tickets/${id}/merge`, {
+      targetTicketId,
+      reason: reason ?? null,
+    })
+    return data
+  },
+
+  // ---- Watchers ----
+
+  async watchers(id: string) {
+    const { data } = await http.get<Watcher[]>(`/tickets/${id}/watchers`)
+    return data
+  },
+  async addWatcher(id: string, userId: string) {
+    const { data } = await http.post<Watcher[]>(`/tickets/${id}/watchers`, { userId })
+    return data
+  },
+  async removeWatcher(id: string, userId: string) {
+    const { data } = await http.delete<Watcher[]>(`/tickets/${id}/watchers/${userId}`)
+    return data
+  },
+
+  // ---- Tags ----
+
+  async tags(id: string) {
+    const { data } = await http.get<Tag[]>(`/tickets/${id}/tags`)
+    return data
+  },
+  async addTag(id: string, name: string, colorHex?: string | null) {
+    const { data } = await http.post<Tag[]>(`/tickets/${id}/tags`, { name, colorHex: colorHex ?? null })
+    return data
+  },
+  async removeTag(id: string, tagId: string) {
+    const { data } = await http.delete<Tag[]>(`/tickets/${id}/tags/${tagId}`)
+    return data
+  },
+  async searchTags(query?: string) {
+    const { data } = await http.get<Tag[]>('/tags', { params: { query } })
+    return data
+  },
+
+  // ---- Escalation ----
+
+  /** delta is +1 or -1; the reason is mandatory. */
+  async changeEscalation(id: string, delta: number, reason: string) {
+    const { data } = await http.post<TicketDetail>(`/tickets/${id}/escalation`, { delta, reason })
+    return data
+  },
+}
+
+export const ticketCategoriesApi = {
+  async tree(includeInactive = true) {
+    const { data } = await http.get<CategoryLookup[]>('/ticket-categories', { params: { includeInactive } })
+    return data
+  },
+  async create(request: CategoryUpsertRequest) {
+    const { data } = await http.post<CategoryLookup>('/ticket-categories', request)
+    return data
+  },
+  async update(id: string, request: CategoryUpsertRequest) {
+    const { data } = await http.put<CategoryLookup>(`/ticket-categories/${id}`, request)
+    return data
+  },
+  async reorder(items: CategoryReorderItem[]) {
+    await http.post('/ticket-categories/reorder', { items })
+  },
+  async setActive(id: string, isActive: boolean) {
+    await http.post(`/ticket-categories/${id}/${isActive ? 'activate' : 'deactivate'}`)
+  },
+  async remove(id: string) {
+    await http.delete(`/ticket-categories/${id}`)
+  },
+}
+
+export const savedViewsApi = {
+  async list(entityKind = 'Ticket') {
+    const { data } = await http.get<SavedView[]>('/saved-views', { params: { entityKind } })
+    return data
+  },
+  async upsert(name: string, filtersJson: string, entityKind = 'Ticket') {
+    const { data } = await http.post<SavedView>('/saved-views', { name, entityKind, filtersJson })
+    return data
+  },
+  async remove(id: string) {
+    await http.delete(`/saved-views/${id}`)
   },
 }
 

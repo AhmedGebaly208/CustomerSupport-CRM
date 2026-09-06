@@ -10,14 +10,31 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CustomerSupportCRM.Application.Tickets;
 
-public sealed class TicketService(
-    IAppDbContext db,
-    ICurrentUser currentUser,
-    IClock clock,
-    IReferenceNumberGenerator numbers,
-    IIdentityService identity,
-    IScopeProvider scope) : ITicketService
+public sealed partial class TicketService : ITicketService
 {
+    private readonly IAppDbContext db;
+    private readonly ICurrentUser currentUser;
+    private readonly IClock clock;
+    private readonly IReferenceNumberGenerator numbers;
+    private readonly IIdentityService identity;
+    private readonly IScopeProvider scope;
+
+    public TicketService(
+        IAppDbContext db,
+        ICurrentUser currentUser,
+        IClock clock,
+        IReferenceNumberGenerator numbers,
+        IIdentityService identity,
+        IScopeProvider scope)
+    {
+        this.db = db;
+        this.currentUser = currentUser;
+        this.clock = clock;
+        this.numbers = numbers;
+        this.identity = identity;
+        this.scope = scope;
+    }
+
     public async Task<PagedResult<TicketListItemDto>> SearchAsync(TicketQuery query, CancellationToken ct = default)
     {
         // Scope first, so no later filter can widen it back out.
@@ -84,6 +101,15 @@ public sealed class TicketService(
         if (query.Unassigned is { } unassigned)
             q = unassigned ? q.Where(t => t.AssignedAgentId == null) : q.Where(t => t.AssignedAgentId != null);
 
+        if (query.TagIds is { Length: > 0 })
+        {
+            var tagIds = query.TagIds;
+            q = q.Where(t => t.TicketTags.Any(tt => tagIds.Contains(tt.TagId)));
+        }
+
+        if (query.WatchedBy is { } watcherId)
+            q = q.Where(t => t.Watchers.Any(w => w.UserId == watcherId));
+
         if (query.CreatedFrom is { } from) q = q.Where(t => t.CreatedAt >= from);
         if (query.CreatedTo is { } to) q = q.Where(t => t.CreatedAt <= to);
 
@@ -119,7 +145,13 @@ public sealed class TicketService(
         scope.EnsureCanAccess(ticket);
 
         var names = await ResolveNamesAsync([ticket.AssignedAgentId], ct);
-        return ToDetail(ticket, Lookup(names, ticket.AssignedAgentId));
+
+        return ToDetail(
+            ticket,
+            Lookup(names, ticket.AssignedAgentId),
+            await LoadTagsAsync(id, ct),
+            await LoadWatchersAsync(id, ct),
+            await LoadLinksAsync(id, ct));
     }
 
     public async Task<TicketDetailDto> CreateAsync(CreateTicketRequest request, CancellationToken ct = default)
@@ -554,7 +586,12 @@ public sealed class TicketService(
             throw new BadRequestException("The selected branch does not exist.");
     }
 
-    private static TicketDetailDto ToDetail(Ticket t, string? agentName) => new(
+    private static TicketDetailDto ToDetail(
+        Ticket t,
+        string? agentName,
+        IReadOnlyList<TagDto> tags,
+        IReadOnlyList<WatcherDto> watchers,
+        IReadOnlyList<TicketLinkDto> links) => new(
         t.Id, t.Number, t.Subject, t.Description, t.Status, t.Priority, t.Channel,
         t.CustomerId, t.Customer!.Code, t.Customer.FullNameAr, t.Customer.FullNameEn,
         t.Customer.Email, t.Customer.Phone,
@@ -565,5 +602,8 @@ public sealed class TicketService(
         t.EscalationLevel,
         t.FirstResponseDueAt, t.ResolutionDueAt, t.FirstRespondedAt,
         t.ResolvedAt, t.ClosedAt, t.CreatedAt, t.ModifiedAt,
-        TicketWorkflow.AllowedTransitions(t.Status));
+        TicketWorkflow.AllowedTransitions(t.Status),
+        tags,
+        watchers,
+        links);
 }
