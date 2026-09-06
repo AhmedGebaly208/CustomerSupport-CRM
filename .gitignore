@@ -1,0 +1,54 @@
+# ---- .NET ----
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.user
+*.suo
+*.userprefs
+.vs/
+.vscode/
+*.dll
+*.pdb
+TestResults/
+[Ll]ogs/
+*.received.*
+
+# ---- Local app settings / secrets ----
+# The dev config holds a JWT signing key and the seed admin password, so it stays
+# local. Copy appsettings.Development.example.json and fill in your own values.
+appsettings.Development.json
+appsettings.*.local.json
+*.secrets.json
+
+# ---- Node / Vue ----
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env.local
+.env.*.local
+
+# ---- OS ----
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# ---- Uploads (runtime attachment storage) ----
+backend/src/CustomerSupportCRM.Api/App_Data/uploads/
+
+# Managed by squad-kit — do not edit this block
+.squad/secrets.yaml
+.squad/stories/**/attachments/
+.squad/.trash/
+.squad/.last-run.json
+.squad/.last-copy-prompt.md
+.squad/runs/
+# End squad-kit block

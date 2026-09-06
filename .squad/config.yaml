@@ -1,0 +1,27 @@
+version: 1
+project:
+  name: CustomerSupport-CRM
+  primaryLanguage: csharp
+  projectRoots:
+    - backend
+    - frontend
+tracker:
+  type: none
+naming:
+  includeTrackerId: false
+  globalSequence: true
+agents:
+  - claude-code
+planner:
+  enabled: true
+  provider: anthropic
+  auth:
+    anthropic: subscription
+  mode: auto
+  budget:
+    maxFileReads: 25
+    maxContextBytes: 50000
+    maxDurationSeconds: 180
+  cache:
+    enabled: true
+  maxOutputTokens: 16384

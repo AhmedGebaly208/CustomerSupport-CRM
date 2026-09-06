@@ -1,0 +1,28 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /* The ar/en message catalogues are imported as modules in src/i18n.ts. */
+    "resolveJsonModule": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    /*
+     * Off deliberately. src/types/api.ts mirrors the C# enums as TS `enum`s so the
+     * reverse mapping (TicketStatus[value] -> "Resolved") can key the i18n catalogues.
+     * `erasableSyntaxOnly` exists for Node's type-stripping, which does not apply to a
+     * Vite-bundled browser app.
+     */
+    "erasableSyntaxOnly": false,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+}

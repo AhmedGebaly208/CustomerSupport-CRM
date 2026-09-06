@@ -1,0 +1,164 @@
+using CustomerSupportCRM.Application.Auth;
+using CustomerSupportCRM.Application.Auth.Dtos;
+using CustomerSupportCRM.Application.Common.Interfaces;
+using CustomerSupportCRM.Application.Common.Exceptions;
+using CustomerSupportCRM.Application.Common.Models;
+using CustomerSupportCRM.Domain.Common;
+using CustomerSupportCRM.Domain.Tickets;
+
+namespace CustomerSupportCRM.Application.Tests.TestSupport;
+
+public sealed class FakeCurrentUser : ICurrentUser
+{
+    public Guid? UserId { get; set; } = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    public string? UserName { get; set; } = "Test Agent";
+    public string? Email { get; set; } = "agent@azm.com.sa";
+    public IReadOnlyList<string> Roles { get; set; } = ["Agent"];
+    public bool IsAuthenticated => UserId is not null;
+    public bool IsInRole(string role) => Roles.Contains(role);
+
+    /// <summary>Arbitrary claims a test can set, e.g. department_id / branch_id for scoping.</summary>
+    public Dictionary<string, string?> Claims { get; } = new();
+
+    /// <summary>Permissions the fake caller holds. Defaults to every permission the caller's
+    /// roles grant, so existing tests keep the access they had before the permission model.</summary>
+    public HashSet<string> Permissions { get; set; } = [.. RolePermissions.ForRoles(["Agent"])];
+
+    public bool HasPermission(string permission) => Permissions.Contains(permission);
+
+    public string? FindClaim(string claimType) => Claims.GetValueOrDefault(claimType);
+}
+
+/// <summary>Scope stand-in. Defaults to global so the existing service tests, which are
+/// about business rules rather than scoping, keep seeing every row.</summary>
+public sealed class FakeScopeProvider : IScopeProvider
+{
+    public bool IsGlobal { get; set; } = true;
+    public Guid? DepartmentId { get; set; }
+    public Guid? BranchId { get; set; }
+
+    public IQueryable<T> Apply<T>(IQueryable<T> source) where T : class, IScopedEntity
+    {
+        if (IsGlobal) return source;
+        if (DepartmentId is null) return source.Where(_ => false);
+
+        var departmentId = DepartmentId;
+        return source.Where(e => e.DepartmentId == null || e.DepartmentId == departmentId);
+    }
+
+    public bool CanAccess(IScopedEntity entity)
+    {
+        if (IsGlobal) return true;
+        if (DepartmentId is null) return false;
+        return entity.DepartmentId is null || entity.DepartmentId == DepartmentId;
+    }
+
+    public void EnsureCanAccess(IScopedEntity entity)
+    {
+        if (!CanAccess(entity))
+            throw new ForbiddenException("This record belongs to another department.");
+    }
+
+    /// <summary>Narrows the caller to one department, as a non-supervisory agent would be.</summary>
+    public void ScopeTo(Guid? departmentId)
+    {
+        IsGlobal = false;
+        DepartmentId = departmentId;
+    }
+}
+
+/// <summary>Fixed clock so SLA fields and history timestamps are assertable.</summary>
+public sealed class FakeClock(DateTimeOffset? start = null) : IClock
+{
+    public DateTimeOffset UtcNow { get; set; } =
+        start ?? new DateTimeOffset(2026, 8, 25, 9, 0, 0, TimeSpan.Zero);
+
+    public void Advance(TimeSpan by) => UtcNow = UtcNow.Add(by);
+}
+
+/// <summary>In-memory stand-in for the SQL sequence generator.</summary>
+public sealed class FakeReferenceNumberGenerator : IReferenceNumberGenerator
+{
+    private long _ticket;
+    private long _customer;
+
+    public Task<string> NextTicketNumberAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(ReferenceNumber.Ticket(Interlocked.Increment(ref _ticket)));
+
+    public Task<string> NextCustomerCodeAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(ReferenceNumber.Customer(Interlocked.Increment(ref _customer)));
+}
+
+/// <summary>Identity stand-in: Application code only needs agent lookup and display names,
+/// so the tests do not have to spin up ASP.NET Identity.</summary>
+public sealed class FakeIdentityService : IIdentityService
+{
+    public List<AgentDto> Agents { get; } = [];
+
+    public Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("Authentication is exercised through the API, not these tests.");
+
+    public Task<AuthResponse> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("Authentication is exercised through the API, not these tests.");
+
+    public Task<CurrentUserDto> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        Task.FromResult(new CurrentUserDto(userId, "test@azm.com.sa", "مستخدم", "User", "ar", null, null,
+            ["Agent"], [.. RolePermissions.For("Agent")]));
+
+    public Task<IReadOnlyList<AgentDto>> GetAgentsAsync(Guid? departmentId, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<AgentDto>>(
+            departmentId is null ? Agents : Agents.Where(a => a.DepartmentId == departmentId).ToList());
+
+    public Task<IReadOnlyDictionary<Guid, string>> GetUserDisplayNamesAsync(
+        IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
+    {
+        var ids = userIds.Distinct().ToList();
+        var names = Agents
+            .Where(a => ids.Contains(a.Id))
+            .ToDictionary(a => a.Id, a => a.FullNameEn);
+
+        return Task.FromResult<IReadOnlyDictionary<Guid, string>>(names);
+    }
+
+    public AgentDto AddAgent(string name, Guid? departmentId = null)
+    {
+        var agent = new AgentDto(Guid.NewGuid(), name, name, $"{name.ToLowerInvariant()}@azm.com.sa", departmentId, 0);
+        Agents.Add(agent);
+        return agent;
+    }
+
+    // ---- User administration ----
+    // These live on IIdentityService because Application must not reference ASP.NET Identity.
+    // They are exercised against the real UserManager in IdentityServiceAdminTests, which uses
+    // a SQLite-backed context; the Application-layer tests that use this fake never call them.
+
+    private const string NotExercisedHere =
+        "User administration is exercised in IdentityServiceAdminTests against the real UserManager.";
+
+    public Task<PagedResult<UserAdminDto>> ListUsersAsync(UserListQuery query, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task<UserAdminDto> GetUserAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task<UserAdminDto> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task<UserAdminDto> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task DeactivateUserAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task ReactivateUserAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task<IReadOnlyList<string>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task SetUserRolesAsync(Guid userId, IReadOnlyList<string> roleNames, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+
+    public Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException(NotExercisedHere);
+}

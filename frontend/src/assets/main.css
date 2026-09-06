@@ -1,0 +1,65 @@
+@import 'tailwindcss';
+@import 'tailwindcss-primeui';
+
+/*
+ * Dark mode is driven by a class on <html> that the UI store toggles, so it stays in
+ * sync with PrimeVue's darkModeSelector instead of following the OS independently.
+ */
+@custom-variant dark (&:where(.app-dark, .app-dark *));
+
+/*
+ * Brand tokens live here as CSS custom properties. PDF area 12 asks for custom
+ * branding: the branding story overrides these values (per tenant, at runtime) rather
+ * than editing component styles.
+ */
+:root {
+  --brand-primary: var(--p-primary-color, #0f766e);
+  --brand-surface: var(--p-content-background, #ffffff);
+  --brand-radius: 0.625rem;
+
+  --app-sidebar-width: 16rem;
+  --app-topbar-height: 3.75rem;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--p-content-background);
+  color: var(--p-text-color);
+  font-family: 'Segoe UI', 'Noto Sans Arabic', 'Tahoma', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Arabic renders short at the same pixel size as Latin, so nudge it up rather than
+ * scaling the whole app.
+ */
+html[dir='rtl'] body {
+  font-family: 'Noto Sans Arabic', 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+  font-size: 1.02rem;
+}
+
+/*
+ * Numbers, ticket references and dates must stay left-to-right even inside an RTL
+ * paragraph, otherwise "TKT-000123" renders with the digits reordered.
+ */
+.ltr-nums {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+.app-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* PrimeVue's DataTable can overflow narrow screens; keep the scroll inside the table. */
+.p-datatable-wrapper {
+  overflow-x: auto;
+}
