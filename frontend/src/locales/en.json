@@ -445,6 +445,9 @@
     "kb": {
       "article-incomplete": "Publishing requires content in both Arabic and English.",
       "article-in-use": "Tickets reference this article. Archive it instead of deleting it."
+    },
+    "ai": {
+      "rate-limited": "Assistance has been used a lot in a short period. Try again shortly."
     }
   },
   "sla": {
@@ -629,5 +632,23 @@
       "bodyBothLanguages": "Publishing requires content in both Arabic and English."
     },
     "insertLink": "Insert link"
+  },
+  "ai": {
+    "title": "Assistance",
+    "summarise": "Summarise",
+    "suggestReply": "Suggest a reply",
+    "suggestCategory": "Suggest a category",
+    "suggestSolutions": "Suggested solutions",
+    "noAnswer": "Not enough to go on",
+    "failed": "That did not work",
+    "rateLimited": "Assistance has been used a lot in a short period. Try again shortly.",
+    "basedOn": "Based on",
+    "why": "Why",
+    "provider": "Source",
+    "insert": "Insert into reply",
+    "accept": "Accept",
+    "reject": "Reject",
+    "suggestionNote": "A suggestion for review — nothing is applied until you accept it.",
+    "applyCategory": "Apply category"
   }
 }

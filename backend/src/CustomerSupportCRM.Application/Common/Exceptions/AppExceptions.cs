@@ -70,6 +70,9 @@ public static class ErrorCodes
     public const string ArticleIncomplete = "kb.article-incomplete";
     public const string ArticleInUse = "kb.article-in-use";
 
+    // Assistance.
+    public const string AiRateLimited = "ai.rate-limited";
+
     // Surfaced by the middleware rather than by a call site.
     public const string ValidationFailed = "validation-failed";
     public const string Unexpected = "unexpected";

@@ -25,6 +25,9 @@ public interface IAppDbContext
     DbSet<TicketLink> TicketLinks { get; }
     DbSet<UserSavedView> UserSavedViews { get; }
 
+    DbSet<AiCallLog> AiCallLogs { get; }
+    DbSet<AiSuggestionFeedback> AiSuggestionFeedback { get; }
+
     DbSet<ChannelMessage> ChannelMessages { get; }
 
     DbSet<ArticleCategory> ArticleCategories { get; }

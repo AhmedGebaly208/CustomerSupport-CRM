@@ -23,6 +23,7 @@ import { authApi, slaApi, ticketsApi, workspaceApi } from '@/api/services'
 import SlaBadge from '@/components/SlaBadge.vue'
 import TicketArticles from '@/components/TicketArticles.vue'
 import TicketDelivery from '@/components/TicketDelivery.vue'
+import TicketAssistance from '@/components/TicketAssistance.vue'
 import { problemMessage } from '@/api/client'
 import { useUiStore } from '@/stores/ui'
 import { useFormat } from '@/composables/useFormat'
@@ -283,6 +284,16 @@ onMounted(load)
           <div>
             <div class="text-xs text-surface-500 dark:text-surface-400">{{ t('ticket.createdAt') }}</div>
             <div class="text-sm">{{ formatDateTime(ticket.createdAt) }}</div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <TicketAssistance
+              :ticket-id="props.id"
+              @insert-reply="(text) => (newComment = newComment ? `${newComment}
+
+${text}` : text)"
+              @apply-category="(id) => { if (ticket) ticket.categoryId = id }"
+            />
           </div>
 
           <div class="sm:col-span-2">

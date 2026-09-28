@@ -1,4 +1,5 @@
 import { http } from './client'
+import type { AiFeature, AiSuggestionOutcome } from '@/types/api'
 import type {
   Agent,
   AgentDashboard,
@@ -21,11 +22,13 @@ import type {
   BusinessHoursDay,
   CategoryLookup,
   CategoryReorderItem,
+  CategorySuggestion,
   CategoryUpsertRequest,
   ChangePasswordRequest,
   ChannelMessage,
   ChannelStatus,
   ChannelToggle,
+  ChatAnswer,
   CommunicationChannel,
   CreateTicketRequest,
   CreateUserRequest,
@@ -57,6 +60,8 @@ import type {
   SlaPolicy,
   SlaPreview,
   SlaPreviewRequest,
+  SuggestedReply,
+  SuggestedSolutions,
   Tag,
   TeamDashboard,
   TicketComment,
@@ -68,6 +73,7 @@ import type {
   TicketPriority,
   TicketSlaStatus,
   TicketStatus,
+  TicketSummary,
   UpdateTicketRequest,
   UpdateUserRequest,
   UserAdmin,
@@ -773,5 +779,32 @@ export const channelsApi = {
   async dispatch() {
     const { data } = await http.post<{ delivered: number }>('/channels/dispatch')
     return data
+  },
+}
+
+export const aiApi = {
+  async summary(ticketId: string) {
+    const { data } = await http.post<TicketSummary>(`/ai/tickets/${ticketId}/summary`)
+    return data
+  },
+  async suggestReply(ticketId: string) {
+    const { data } = await http.post<SuggestedReply>(`/ai/tickets/${ticketId}/reply`)
+    return data
+  },
+  async suggestCategory(ticketId: string) {
+    const { data } = await http.post<CategorySuggestion>(`/ai/tickets/${ticketId}/category`)
+    return data
+  },
+  async suggestSolutions(ticketId: string) {
+    const { data } = await http.post<SuggestedSolutions>(`/ai/tickets/${ticketId}/solutions`)
+    return data
+  },
+  async ask(question: string, languageHint?: string) {
+    const { data } = await http.post<ChatAnswer>('/ai/ask', { question, languageHint })
+    return data
+  },
+  /** Records what the agent did with a suggestion, which is how its value is measured. */
+  async feedback(feature: AiFeature, outcome: AiSuggestionOutcome, ticketId?: string) {
+    await http.post('/ai/feedback', { feature, outcome, ticketId: ticketId ?? null })
   },
 }

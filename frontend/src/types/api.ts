@@ -482,6 +482,76 @@ export interface ChannelMessage {
   ticketCommentId: string | null
 }
 
+// ---- AI assistance (area 7) ----
+
+export enum AiFeature {
+  Summary = 0,
+  SuggestedReply = 1,
+  Categorisation = 2,
+  SuggestedSolutions = 3,
+  Chatbot = 4,
+}
+
+export enum AiCallOutcome {
+  Success = 0,
+  Failed = 1,
+  RateLimited = 2,
+  Disabled = 3,
+  Cached = 4,
+  /** The provider had nothing useful to say. A real answer, not a failure. */
+  NoAnswer = 5,
+}
+
+export enum AiSuggestionOutcome {
+  Offered = 0,
+  Accepted = 1,
+  Edited = 2,
+  Rejected = 3,
+}
+
+export interface SuggestedArticle {
+  id: string
+  titleAr: string
+  titleEn: string
+  rank: number
+}
+
+export interface TicketSummary {
+  summary: string
+  outcome: AiCallOutcome
+  rationale: string | null
+  provider: string
+}
+
+export interface SuggestedReply {
+  body: string
+  outcome: AiCallOutcome
+  rationale: string | null
+  basedOn: SuggestedArticle[]
+}
+
+export interface CategorySuggestion {
+  categoryId: string | null
+  categoryNameAr: string | null
+  categoryNameEn: string | null
+  outcome: AiCallOutcome
+  rationale: string | null
+}
+
+export interface SuggestedSolutions {
+  articles: SuggestedArticle[]
+  outcome: AiCallOutcome
+  rationale: string | null
+}
+
+export interface ChatAnswer {
+  answer: string
+  outcome: AiCallOutcome
+  rationale: string | null
+  sources: SuggestedArticle[]
+  shouldEscalate: boolean
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',

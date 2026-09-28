@@ -28,6 +28,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<TicketLink> TicketLinks => Set<TicketLink>();
     public DbSet<UserSavedView> UserSavedViews => Set<UserSavedView>();
 
+    public DbSet<AiCallLog> AiCallLogs => Set<AiCallLog>();
+    public DbSet<AiSuggestionFeedback> AiSuggestionFeedback => Set<AiSuggestionFeedback>();
+
     public DbSet<ChannelMessage> ChannelMessages => Set<ChannelMessage>();
 
     public DbSet<ArticleCategory> ArticleCategories => Set<ArticleCategory>();

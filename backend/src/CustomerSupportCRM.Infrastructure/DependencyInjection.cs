@@ -1,5 +1,7 @@
+using CustomerSupportCRM.Application.Ai;
 using CustomerSupportCRM.Application.Channels;
 using CustomerSupportCRM.Domain.Enums;
+using CustomerSupportCRM.Infrastructure.Ai;
 using CustomerSupportCRM.Infrastructure.Channels;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
@@ -77,6 +79,12 @@ public static class DependencyInjection
 
         services.Configure<LocalChannelOptions>(configuration.GetSection(LocalChannelOptions.SectionName));
         services.AddScoped<IChannelRegistry, ChannelRegistry>();
+
+        services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
+        services.AddMemoryCache();
+        services.AddScoped<IAiCompletionService, LocalAiCompletionService>();
+        services.AddScoped<IAiRateLimiter, AiRateLimiter>();
+        services.AddScoped<IAiCallLogger, AiCallLogger>();
 
         // One adapter instance per channel the local provider covers. Registering them
         // individually rather than one multiplexing adapter keeps IChannelAdapter's

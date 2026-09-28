@@ -57,9 +57,9 @@ public static partial class ArabicTextNormalizer
         return Whitespace().Replace(builder.ToString(), " ").Trim();
     }
 
-    /// <summary>The plain-text, normalised projection of an article body, stored alongside it
-    /// so search never has to strip markup at query time.</summary>
-    public static string BuildSearchText(string? htmlOrText)
+    /// <summary>Markup removed, wording untouched. Use this for anything a person will read;
+    /// Normalize folds letters and case for comparison and would make prose look misspelt.</summary>
+    public static string StripHtml(string? htmlOrText)
     {
         if (string.IsNullOrWhiteSpace(htmlOrText)) return string.Empty;
 
@@ -73,8 +73,12 @@ public static partial class ArabicTextNormalizer
             .Replace("&gt;", ">", StringComparison.OrdinalIgnoreCase)
             .Replace("&quot;", "\"", StringComparison.OrdinalIgnoreCase);
 
-        return Normalize(text);
+        return Whitespace().Replace(text, " ").Trim();
     }
+
+    /// <summary>The plain-text, normalised projection of an article body, stored alongside it
+    /// so search never has to strip markup at query time.</summary>
+    public static string BuildSearchText(string? htmlOrText) => Normalize(StripHtml(htmlOrText));
 
     /// <summary>A url-safe slug. Arabic is kept as Arabic rather than transliterated: the
     /// reader recognises it, and browsers percent-encode it transparently.</summary>
