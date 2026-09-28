@@ -445,6 +445,43 @@ export interface ArticleSearchResult {
   availableTags: ArticleTag[]
 }
 
+// ---- Communication channels (area 3) ----
+
+export enum ChannelDirection {
+  Inbound = 0,
+  Outbound = 1,
+}
+
+export enum ChannelMessageStatus {
+  Pending = 0,
+  Sent = 1,
+  Delivered = 2,
+  Retrying = 3,
+  Failed = 4,
+}
+
+export interface ChannelStatus {
+  channel: CommunicationChannel
+  /** An adapter is compiled into this build; a channel without one cannot be switched on. */
+  hasAdapter: boolean
+  isEnabled: boolean
+}
+
+export interface ChannelMessage {
+  id: string
+  channel: CommunicationChannel
+  direction: ChannelDirection
+  address: string | null
+  subject: string | null
+  bodyText: string
+  status: ChannelMessageStatus
+  attemptCount: number
+  lastError: string | null
+  occurredAt: string
+  nextAttemptAt: string | null
+  ticketCommentId: string | null
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',

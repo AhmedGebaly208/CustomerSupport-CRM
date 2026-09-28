@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using CustomerSupportCRM.Application.Channels;
 using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Common.Models;
@@ -24,6 +25,7 @@ public sealed partial class TicketService : ITicketService
     private readonly ISlaService sla;
     private readonly IAutoAssignmentService autoAssignment;
     private readonly INotificationService notifications;
+    private readonly IOutboundDispatcher outbound;
 
     public TicketService(
         IAppDbContext db,
@@ -34,7 +36,8 @@ public sealed partial class TicketService : ITicketService
         IScopeProvider scope,
         ISlaService sla,
         IAutoAssignmentService autoAssignment,
-        INotificationService notifications)
+        INotificationService notifications,
+        IOutboundDispatcher outbound)
     {
         this.db = db;
         this.currentUser = currentUser;
@@ -45,6 +48,7 @@ public sealed partial class TicketService : ITicketService
         this.sla = sla;
         this.autoAssignment = autoAssignment;
         this.notifications = notifications;
+        this.outbound = outbound;
     }
 
     public async Task<PagedResult<TicketListItemDto>> SearchAsync(TicketQuery query, CancellationToken ct = default)
@@ -443,6 +447,11 @@ public sealed partial class TicketService : ITicketService
         // After the save: a mention announces work that exists, and the comment row must be
         // there before a mention can point at it.
         await RecordMentionsAsync(ticket, comment, now, ct);
+
+        // A customer-visible reply goes back out on the channel they used. Queued, not sent
+        // here: the agent should not wait on a provider, and a provider outage must not cost
+        // them the reply they already wrote.
+        if (!request.IsInternal) await outbound.QueueAsync(ticket.Id, comment.Id, ct);
 
         var names = await ResolveNamesAsync([comment.AuthorId], ct);
         return new TicketCommentDto(comment.Id, ticketId, comment.Body, comment.IsInternal,

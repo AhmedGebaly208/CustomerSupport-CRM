@@ -1,4 +1,5 @@
 using CustomerSupportCRM.Application.Common.Exceptions;
+using CustomerSupportCRM.Application.Channels;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.SystemConfig.Dtos;
@@ -262,6 +263,10 @@ public sealed class SystemConfigService(IAppDbContext db, IClock clock, IConfigC
         if (request.ApiSecret is not null) row.ApiSecret = Normalize(request.ApiSecret);
 
         await db.SaveChangesAsync(ct);
+
+        // The channel registry caches which channels are on, so switching one off has to
+        // reach it or the dispatcher keeps sending on a disabled channel.
+        cache.Remove(ChannelCacheKeys.EnabledChannels);
 
         return new ChannelToggleDto(
             row.Id, row.Channel, row.IsEnabled, row.Endpoint,

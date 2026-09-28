@@ -23,6 +23,8 @@ import type {
   CategoryReorderItem,
   CategoryUpsertRequest,
   ChangePasswordRequest,
+  ChannelMessage,
+  ChannelStatus,
   ChannelToggle,
   CommunicationChannel,
   CreateTicketRequest,
@@ -755,5 +757,21 @@ export const kbApi = {
   },
   async unlinkFromTicket(ticketId: string, linkId: string) {
     await http.delete(`/tickets/${ticketId}/articles/${linkId}`)
+  },
+}
+
+export const channelsApi = {
+  async status() {
+    const { data } = await http.get<ChannelStatus[]>('/channels')
+    return data
+  },
+  /** The delivery ledger for one ticket — did the reply actually leave? */
+  async messages(ticketId: string) {
+    const { data } = await http.get<ChannelMessage[]>('/channels/messages', { params: { ticketId } })
+    return data
+  },
+  async dispatch() {
+    const { data } = await http.post<{ delivered: number }>('/channels/dispatch')
+    return data
   },
 }

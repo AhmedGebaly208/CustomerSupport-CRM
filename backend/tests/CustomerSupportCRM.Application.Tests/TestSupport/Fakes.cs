@@ -1,4 +1,5 @@
 using CustomerSupportCRM.Application.Auth;
+using CustomerSupportCRM.Application.Channels;
 using CustomerSupportCRM.Application.Auth.Dtos;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Common.Exceptions;
@@ -228,4 +229,19 @@ public sealed class FakeBusinessCalendarProvider : IBusinessCalendarProvider
     public BusinessCalendar Calendar { get; set; } = BusinessCalendar.TwentyFourSeven(TimeZoneInfo.Utc);
 
     public Task<BusinessCalendar> GetAsync(CancellationToken ct = default) => Task.FromResult(Calendar);
+}
+
+/// <summary>Records what would have been sent without touching a provider. Ticket tests care
+/// that a reply is queued, not how it travels.</summary>
+public sealed class FakeOutboundDispatcher : IOutboundDispatcher
+{
+    public List<(Guid TicketId, Guid CommentId)> Queued { get; } = [];
+
+    public Task QueueAsync(Guid ticketId, Guid commentId, CancellationToken ct = default)
+    {
+        Queued.Add((ticketId, commentId));
+        return Task.CompletedTask;
+    }
+
+    public Task<int> DispatchPendingAsync(CancellationToken ct = default) => Task.FromResult(0);
 }

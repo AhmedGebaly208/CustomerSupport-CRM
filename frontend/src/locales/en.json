@@ -223,14 +223,20 @@
     "Urgent": "Urgent"
   },
   "channel": {
-    "Email": "Email",
-    "WhatsApp": "WhatsApp",
-    "LiveChat": "Live chat",
-    "Sms": "SMS",
-    "WebForm": "Web form",
-    "Portal": "Portal",
-    "Phone": "Phone",
-    "Internal": "Internal"
+    "delivery": "Delivery",
+    "noMessages": "Nothing sent over a channel",
+    "inbound": "Inbound",
+    "outbound": "Outbound",
+    "attempts": "attempts",
+    "retryAt": "Retry at",
+    "noAdapter": "Not supported in this build",
+    "status": {
+      "Pending": "Queued",
+      "Sent": "Sent",
+      "Delivered": "Delivered",
+      "Retrying": "Retrying",
+      "Failed": "Failed"
+    }
   },
   "contactType": {
     "Email": "Email",

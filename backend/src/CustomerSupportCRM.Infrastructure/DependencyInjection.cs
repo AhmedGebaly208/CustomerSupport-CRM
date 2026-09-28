@@ -1,3 +1,8 @@
+using CustomerSupportCRM.Application.Channels;
+using CustomerSupportCRM.Domain.Enums;
+using CustomerSupportCRM.Infrastructure.Channels;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Infrastructure.Caching;
@@ -69,6 +74,28 @@ public static class DependencyInjection
         services.AddScoped<ITransactionRunner, TransactionRunner>();
 
         services.AddScoped<IBusinessCalendarProvider, BusinessCalendarProvider>();
+
+        services.Configure<LocalChannelOptions>(configuration.GetSection(LocalChannelOptions.SectionName));
+        services.AddScoped<IChannelRegistry, ChannelRegistry>();
+
+        // One adapter instance per channel the local provider covers. Registering them
+        // individually rather than one multiplexing adapter keeps IChannelAdapter's
+        // "one adapter, one channel" shape, which is what a real provider will fit.
+        var localChannels = configuration
+            .GetSection($"{LocalChannelOptions.SectionName}:Channels")
+            .Get<CommunicationChannel[]>()
+            ?? [CommunicationChannel.Email, CommunicationChannel.WhatsApp,
+                CommunicationChannel.Sms, CommunicationChannel.LiveChat];
+
+        foreach (var channel in localChannels.Distinct())
+        {
+            var captured = channel;
+
+            services.AddScoped<IChannelAdapter>(sp => new LocalDropChannelAdapter(
+                captured,
+                sp.GetRequiredService<IOptions<LocalChannelOptions>>(),
+                sp.GetRequiredService<ILogger<LocalDropChannelAdapter>>()));
+        }
 
         // Both parsers are registered; the service picks by file extension and content type.
         services.AddScoped<ICustomerImportParser, CsvCustomerImportParser>();

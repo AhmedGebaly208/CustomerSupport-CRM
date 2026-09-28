@@ -1,5 +1,6 @@
 using System.Reflection;
 using CustomerSupportCRM.Application.AuditLogs;
+using CustomerSupportCRM.Application.Channels;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Customers;
 using CustomerSupportCRM.Application.KnowledgeBase;
@@ -31,6 +32,10 @@ public static class DependencyInjection
         services.AddScoped<IAutoAssignmentService, AutoAssignmentService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ISlaEvaluator, SlaEvaluator>();
+
+        services.AddScoped<IInboundMessageProcessor, InboundMessageProcessor>();
+        services.AddScoped<IOutboundDispatcher, OutboundDispatcher>();
+        services.AddScoped<IChannelMessageQuery, ChannelMessageQuery>();
 
         services.AddScoped<IArticleService, ArticleService>();
         services.AddScoped<IArticleCategoryService, ArticleCategoryService>();
