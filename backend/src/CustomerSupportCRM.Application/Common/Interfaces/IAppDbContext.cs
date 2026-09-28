@@ -25,6 +25,10 @@ public interface IAppDbContext
     DbSet<TicketLink> TicketLinks { get; }
     DbSet<UserSavedView> UserSavedViews { get; }
 
+    DbSet<ApiKey> ApiKeys { get; }
+    DbSet<WebhookSubscription> WebhookSubscriptions { get; }
+    DbSet<WebhookDelivery> WebhookDeliveries { get; }
+
     DbSet<TicketSatisfaction> TicketSatisfaction { get; }
 
     DbSet<AiCallLog> AiCallLogs { get; }

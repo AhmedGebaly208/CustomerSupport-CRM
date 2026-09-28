@@ -150,6 +150,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: PERMISSIONS.slaView },
       },
       {
+        path: 'admin/integrations',
+        name: 'integrations',
+        component: () => import('@/views/admin/integrations/IntegrationsView.vue'),
+        meta: { permission: PERMISSIONS.systemConfigManage },
+      },
+      {
         path: 'admin/settings',
         name: 'system-config',
         component: () => import('@/views/admin/settings/SystemConfigView.vue'),

@@ -56,6 +56,10 @@ const navItems = computed(() => {
     items.push({ label: t('nav.auditLogs'), icon: 'pi pi-history', to: { name: 'audit-logs' } })
   }
 
+  if (auth.hasPermission(PERMISSIONS.systemConfigManage)) {
+    items.push({ label: t('nav.integrations'), icon: 'pi pi-link', to: { name: 'integrations' } })
+  }
+
   if (auth.hasPermission(PERMISSIONS.systemConfigView)) {
     items.push({ label: t('nav.settings'), icon: 'pi pi-cog', to: { name: 'system-config' } })
   }

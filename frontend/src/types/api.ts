@@ -719,6 +719,77 @@ export interface PortalProfile {
   preferredLanguage: string
 }
 
+// ---- Integrations (area 11) ----
+
+export enum WebhookDeliveryStatus {
+  Pending = 0,
+  Delivered = 1,
+  Retrying = 2,
+  Failed = 3,
+}
+
+export interface ApiKey {
+  id: string
+  name: string
+  /** The clear part of the key, so an operator can tell two apart without seeing the secret. */
+  prefix: string
+  scopes: string[]
+  isActive: boolean
+  expiresAt: string | null
+  lastUsedAt: string | null
+  rateLimitPerMinute: number
+  revokedAt: string | null
+  createdAt: string
+}
+
+/** The plain key is returned once, at creation, and never again. */
+export interface CreatedApiKey {
+  key: ApiKey
+  plainKey: string
+}
+
+export interface SaveApiKeyRequest {
+  name: string
+  scopes: string[]
+  expiresAt: string | null
+  rateLimitPerMinute: number
+}
+
+export interface WebhookSubscription {
+  id: string
+  name: string
+  url: string
+  events: string[]
+  isActive: boolean
+  consecutiveFailures: number
+  lastDeliveryAt: string | null
+  disabledAt: string | null
+}
+
+export interface CreatedWebhook {
+  subscription: WebhookSubscription
+  secret: string
+}
+
+export interface SaveWebhookRequest {
+  name: string
+  url: string
+  events: string[]
+  isActive: boolean
+}
+
+export interface WebhookDelivery {
+  id: string
+  eventType: string
+  status: WebhookDeliveryStatus
+  attemptCount: number
+  lastStatusCode: number | null
+  lastError: string | null
+  createdAt: string
+  deliveredAt: string | null
+  nextAttemptAt: string | null
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',

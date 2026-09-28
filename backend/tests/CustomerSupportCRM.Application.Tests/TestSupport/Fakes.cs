@@ -1,5 +1,6 @@
 using CustomerSupportCRM.Application.Auth;
 using CustomerSupportCRM.Application.Channels;
+using CustomerSupportCRM.Application.Integrations;
 using CustomerSupportCRM.Application.Auth.Dtos;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Common.Exceptions;
@@ -244,4 +245,17 @@ public sealed class FakeOutboundDispatcher : IOutboundDispatcher
     }
 
     public Task<int> DispatchPendingAsync(CancellationToken ct = default) => Task.FromResult(0);
+}
+
+/// <summary>Records what would have been published without a receiver. Ticket tests care that
+/// an event is raised, not where it goes.</summary>
+public sealed class FakeWebhookPublisher : IWebhookPublisher
+{
+    public List<(string EventType, object Payload)> Published { get; } = [];
+
+    public Task PublishAsync(string eventType, object payload, CancellationToken ct = default)
+    {
+        Published.Add((eventType, payload));
+        return Task.CompletedTask;
+    }
 }

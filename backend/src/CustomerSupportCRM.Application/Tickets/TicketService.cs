@@ -3,6 +3,7 @@ using CustomerSupportCRM.Application.Channels;
 using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Common.Models;
+using CustomerSupportCRM.Application.Integrations;
 using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.Tickets.Dtos;
 using CustomerSupportCRM.Application.Workspace;
@@ -26,6 +27,7 @@ public sealed partial class TicketService : ITicketService
     private readonly IAutoAssignmentService autoAssignment;
     private readonly INotificationService notifications;
     private readonly IOutboundDispatcher outbound;
+    private readonly IWebhookPublisher webhooks;
 
     public TicketService(
         IAppDbContext db,
@@ -37,7 +39,8 @@ public sealed partial class TicketService : ITicketService
         ISlaService sla,
         IAutoAssignmentService autoAssignment,
         INotificationService notifications,
-        IOutboundDispatcher outbound)
+        IOutboundDispatcher outbound,
+        IWebhookPublisher webhooks)
     {
         this.db = db;
         this.currentUser = currentUser;
@@ -49,6 +52,7 @@ public sealed partial class TicketService : ITicketService
         this.autoAssignment = autoAssignment;
         this.notifications = notifications;
         this.outbound = outbound;
+        this.webhooks = webhooks;
     }
 
     public async Task<PagedResult<TicketListItemDto>> SearchAsync(TicketQuery query, CancellationToken ct = default)
@@ -224,6 +228,21 @@ public sealed partial class TicketService : ITicketService
         });
 
         await db.SaveChangesAsync(ct);
+
+        // Announced after the save: a subscriber must never be told about a ticket that
+        // failed to persist.
+        await webhooks.PublishAsync(WebhookEvents.TicketCreated, new
+        {
+            ticket.Id,
+            ticket.Number,
+            ticket.Subject,
+            ticket.CustomerId,
+            Status = ticket.Status.ToString(),
+            Priority = ticket.Priority.ToString(),
+            Channel = ticket.Channel.ToString(),
+            ticket.CreatedAt
+        }, ct);
+
         return await GetByIdAsync(ticket.Id, ct);
     }
 
@@ -316,6 +335,14 @@ public sealed partial class TicketService : ITicketService
 
         await db.SaveChangesAsync(ct);
 
+        await webhooks.PublishAsync(WebhookEvents.TicketAssigned, new
+        {
+            ticket.Id,
+            ticket.Number,
+            AgentId = ticket.AssignedAgentId,
+            AssignedAt = ticket.AssignedAt
+        }, ct);
+
         // After the save, so an agent is never told about work that failed to persist.
         // Assigning to yourself needs no announcement.
         if (ticket.AssignedAgentId is { } newAssignee && newAssignee != currentUser.UserId)
@@ -378,6 +405,30 @@ public sealed partial class TicketService : ITicketService
             ticket.FirstRespondedAt = now;
 
         await db.SaveChangesAsync(ct);
+
+        await webhooks.PublishAsync(WebhookEvents.TicketStatusChanged, new
+        {
+            ticket.Id,
+            ticket.Number,
+            From = previous.ToString(),
+            To = ticket.Status.ToString(),
+            ChangedAt = now
+        }, ct);
+
+        // A resolution is its own event. Most integrations care about work finishing, not
+        // about every intermediate move, and making them filter a generic stream for it
+        // pushes our workflow's vocabulary into their code.
+        if (ticket.Status == TicketStatus.Resolved)
+        {
+            await webhooks.PublishAsync(WebhookEvents.TicketResolved, new
+            {
+                ticket.Id,
+                ticket.Number,
+                ticket.CustomerId,
+                ResolvedAt = ticket.ResolvedAt
+            }, ct);
+        }
+
         return await GetByIdAsync(ticket.Id, ct);
     }
 

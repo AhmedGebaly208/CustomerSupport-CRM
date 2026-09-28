@@ -3,7 +3,10 @@ import type {
   AgentReport,
   AiFeature,
   AiSuggestionOutcome,
+  ApiKey,
   CreatePortalTicketRequest,
+  CreatedApiKey,
+  CreatedWebhook,
   CsatReport,
   ExportFormat,
   PortalAttachment,
@@ -13,8 +16,12 @@ import type {
   PortalTicketListItem,
   ReportKind,
   ReportQuery,
+  SaveApiKeyRequest,
+  SaveWebhookRequest,
   SlaReport,
   TicketReport,
+  WebhookDelivery,
+  WebhookSubscription,
 } from '@/types/api'
 import type {
   Agent,
@@ -908,6 +915,53 @@ export const portalApi = {
   },
   async articles(search?: string) {
     const { data } = await http.get<ArticleSearchResult>('/portal/articles', { params: { search } })
+    return data
+  },
+}
+
+export const integrationsApi = {
+  async keys() {
+    const { data } = await http.get<ApiKey[]>('/integrations/api-keys')
+    return data
+  },
+  /** The response carries the plain key. It is stored only as a hash, so this is the one
+   *  chance to show it. */
+  async createKey(request: SaveApiKeyRequest) {
+    const { data } = await http.post<CreatedApiKey>('/integrations/api-keys', request)
+    return data
+  },
+  async revokeKey(id: string, reason: string | null) {
+    await http.post(`/integrations/api-keys/${id}/revoke`, { reason })
+  },
+  async scopes() {
+    const { data } = await http.get<string[]>('/integrations/api-keys/scopes')
+    return data
+  },
+
+  async webhooks() {
+    const { data } = await http.get<WebhookSubscription[]>('/integrations/webhooks')
+    return data
+  },
+  async createWebhook(request: SaveWebhookRequest) {
+    const { data } = await http.post<CreatedWebhook>('/integrations/webhooks', request)
+    return data
+  },
+  async updateWebhook(id: string, request: SaveWebhookRequest) {
+    const { data } = await http.put<WebhookSubscription>(`/integrations/webhooks/${id}`, request)
+    return data
+  },
+  async deleteWebhook(id: string) {
+    await http.delete(`/integrations/webhooks/${id}`)
+  },
+  async deliveries(id: string) {
+    const { data } = await http.get<WebhookDelivery[]>(`/integrations/webhooks/${id}/deliveries`)
+    return data
+  },
+  async redeliver(id: string, deliveryId: string) {
+    await http.post(`/integrations/webhooks/${id}/deliveries/${deliveryId}/redeliver`)
+  },
+  async events() {
+    const { data } = await http.get<string[]>('/integrations/webhooks/events')
     return data
   },
 }

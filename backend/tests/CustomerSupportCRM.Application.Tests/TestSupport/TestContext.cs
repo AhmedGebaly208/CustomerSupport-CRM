@@ -42,7 +42,7 @@ public sealed class TestHarness : IDisposable
         Tickets = new TicketService(
             Db, CurrentUser, Clock, Numbers, Identity, Scope,
             Sla, new AutoAssignmentService(Db, Identity), Notifications,
-            new FakeOutboundDispatcher());
+            new FakeOutboundDispatcher(), new FakeWebhookPublisher());
         Customers = new CustomerService(
             Db, CurrentUser, Clock, Numbers, Identity, Scope,
             Storage, Transactions, [new CsvCustomerImportParser()],

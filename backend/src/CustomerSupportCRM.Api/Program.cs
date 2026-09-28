@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using CustomerSupportCRM.Application.Integrations;
 using System.Globalization;
 using System.Text;
 using CustomerSupportCRM.Api.Auth;
@@ -31,12 +33,17 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IScopeProvider, ScopeProvider>();
+builder.Services.AddScoped<IApiKeyContext, ApiKeyContext>();
+
+// A named client so webhook delivery cannot inherit whatever defaults another caller sets.
+builder.Services.AddHttpClient("webhooks");
 
 // Escalation has to happen whether or not anyone is looking at the ticket, so the sweep runs
 // on a timer in the host rather than on a request path.
 builder.Services.AddHostedService<SlaEvaluatorHostedService>();
 builder.Services.AddHostedService<ReminderHostedService>();
 builder.Services.AddHostedService<ChannelDispatchHostedService>();
+builder.Services.AddHostedService<WebhookDispatchHostedService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -99,12 +106,26 @@ builder.Services
             // their stated expiry.
             ClockSkew = TimeSpan.Zero
         };
-    });
+    })
+    // A second scheme for integrations. It returns NoResult when no key header is present,
+    // so an ordinary user request on the same endpoint still authenticates as a JWT.
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+        ApiKeyAuthenticationHandler.SchemeName, _ => { });
 
 builder.Services.AddAuthorization(options =>
 {
+    // Either scheme may satisfy a policy, so one endpoint can serve both an agent in the UI
+    // and an integration holding a key with the matching scope.
+    var bothSchemes = new AuthorizationPolicyBuilder(
+            JwtBearerDefaults.AuthenticationScheme,
+            ApiKeyAuthenticationHandler.SchemeName)
+        .RequireAuthenticatedUser()
+        .Build();
+
+    options.DefaultPolicy = bothSchemes;
+
     // Authenticated by default; endpoints opt out with [AllowAnonymous].
-    options.FallbackPolicy = options.DefaultPolicy;
+    options.FallbackPolicy = bothSchemes;
 });
 
 // Resolves Permissions.* constants used as policy names into real policies on demand.

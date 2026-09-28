@@ -6,6 +6,7 @@ using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Customers;
 using CustomerSupportCRM.Application.KnowledgeBase;
 using CustomerSupportCRM.Application.Lookups;
+using CustomerSupportCRM.Application.Integrations;
 using CustomerSupportCRM.Application.Portal;
 using CustomerSupportCRM.Application.Reports;
 using CustomerSupportCRM.Application.SavedViews;
@@ -42,6 +43,11 @@ public static class DependencyInjection
         services.AddScoped<IAssistanceService, AssistanceService>();
         services.AddScoped<IReportsService, ReportsService>();
         services.AddScoped<IPortalService, PortalService>();
+
+        services.AddScoped<IApiKeyService, ApiKeyService>();
+        services.AddScoped<WebhookService>();
+        services.AddScoped<IWebhookService>(sp => sp.GetRequiredService<WebhookService>());
+        services.AddScoped<IWebhookPublisher>(sp => sp.GetRequiredService<WebhookService>());
 
         services.AddScoped<IArticleService, ArticleService>();
         services.AddScoped<IArticleCategoryService, ArticleCategoryService>();

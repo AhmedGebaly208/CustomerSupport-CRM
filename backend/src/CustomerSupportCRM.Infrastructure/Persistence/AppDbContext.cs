@@ -28,6 +28,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<TicketLink> TicketLinks => Set<TicketLink>();
     public DbSet<UserSavedView> UserSavedViews => Set<UserSavedView>();
 
+    public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
+    public DbSet<WebhookSubscription> WebhookSubscriptions => Set<WebhookSubscription>();
+    public DbSet<WebhookDelivery> WebhookDeliveries => Set<WebhookDelivery>();
+
     public DbSet<TicketSatisfaction> TicketSatisfaction => Set<TicketSatisfaction>();
 
     public DbSet<AiCallLog> AiCallLogs => Set<AiCallLog>();

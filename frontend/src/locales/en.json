@@ -45,7 +45,8 @@
     "categories": "Ticket categories",
     "sla": "Service levels",
     "team": "Team board",
-    "kb": "Knowledge base"
+    "kb": "Knowledge base",
+    "integrations": "Integrations"
   },
   "auth": {
     "signIn": "Sign in",
@@ -745,6 +746,51 @@
     "error": {
       "subjectRequired": "A subject is required.",
       "descriptionRequired": "Details are required."
+    }
+  },
+  "integration": {
+    "title": "Integrations",
+    "subtitle": "Access keys and outbound events for external systems",
+    "apiKeys": "API keys",
+    "webhooks": "Webhooks",
+    "newKey": "New key",
+    "noKeys": "No keys yet",
+    "name": "Name",
+    "prefix": "Identifier",
+    "scopes": "Scopes",
+    "pickScopes": "Choose scopes",
+    "scopesHint": "Grant only what the integration needs. A key is not a user and inherits no role.",
+    "rateLimit": "Rate limit",
+    "lastUsed": "Last used",
+    "expires": "Expires",
+    "revoke": "Revoke",
+    "revoked": "Revoked",
+    "revokeConfirm": "Revoke the key “{name}”? Anything using it stops working immediately.",
+    "keyCreated": "API key created",
+    "secretCreated": "Signing secret created",
+    "copyNow": "Copy it now. It will not be shown again.",
+    "copied": "Copied",
+    "newWebhook": "New subscription",
+    "editWebhook": "Edit subscription",
+    "noWebhooks": "No subscriptions yet",
+    "url": "URL",
+    "events": "Events",
+    "pickEvents": "Choose events",
+    "failures": "Consecutive failures",
+    "autoDisabled": "Auto-disabled",
+    "signatureHint": "Every request is signed with HMAC-SHA256 over “timestamp.body” in the X-CRM-Signature header.",
+    "deliveries": "Delivery history",
+    "noDeliveries": "No attempts yet",
+    "event": "Event",
+    "attempts": "Attempts",
+    "response": "Response",
+    "redeliver": "Redeliver",
+    "queued": "Queued",
+    "deliveryStatus": {
+      "Pending": "Queued",
+      "Delivered": "Delivered",
+      "Retrying": "Retrying",
+      "Failed": "Failed"
     }
   }
 }

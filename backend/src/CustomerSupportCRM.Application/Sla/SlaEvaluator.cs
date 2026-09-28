@@ -1,4 +1,5 @@
 using CustomerSupportCRM.Application.Common.Interfaces;
+using CustomerSupportCRM.Application.Integrations;
 using CustomerSupportCRM.Domain.Entities;
 using CustomerSupportCRM.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ public sealed class SlaEvaluator(
     ISlaService sla,
     INotificationService notifications,
     IIdentityService identity,
+    IWebhookPublisher webhooks,
     IClock clock,
     ILogger<SlaEvaluator> logger) : ISlaEvaluator
 {
@@ -169,5 +171,17 @@ public sealed class SlaEvaluator(
                 },
                 ticket.Id),
             ct);
+
+        if (breached)
+        {
+            await webhooks.PublishAsync(WebhookEvents.SlaBreached, new
+            {
+                ticket.Id,
+                ticket.Number,
+                Target = rule.Target.ToString(),
+                PercentConsumed = percent,
+                Rule = rule.NameEn
+            }, ct);
+        }
     }
 }

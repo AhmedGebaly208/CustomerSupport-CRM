@@ -1,6 +1,7 @@
 using CustomerSupportCRM.Application.Auth;
 using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Interfaces;
+using CustomerSupportCRM.Application.Integrations;
 using CustomerSupportCRM.Domain.Common;
 
 namespace CustomerSupportCRM.Api.Services;
@@ -16,14 +17,21 @@ namespace CustomerSupportCRM.Api.Services;
 /// 2. Records with no department are visible to every scoped caller. A ticket that has not
 ///    been routed yet has to be claimable by someone, and the agent dashboard already
 ///    surfaces an "unassigned in department" queue. Hiding unrouted work from everyone
-///    would strand it.</summary>
-public sealed class ScopeProvider(ICurrentUser currentUser) : IScopeProvider
+///    would strand it.
+///
+/// 3. An API key is desk-level. Department scoping exists to keep one team out of another
+///    team's work, and a key belongs to no team — it has no department claim to honour. Left
+///    to the fail-closed rule it would see nothing, which does not protect anything, it just
+///    makes the public API return empty lists. What actually bounds a key is the scope list
+///    an administrator chose when creating it.</summary>
+public sealed class ScopeProvider(ICurrentUser currentUser, IApiKeyContext apiKey) : IScopeProvider
 {
     /// <summary>The cross-department view is the same capability as seeing another agent's
     /// dashboard, so it keys off that permission rather than a role list — a future custom
     /// role gets the global view by being granted the permission, not by being special-cased
     /// here.</summary>
-    public bool IsGlobal => currentUser.HasPermission(Permissions.Dashboard.ViewTeam);
+    public bool IsGlobal =>
+        apiKey.IsApiKeyRequest || currentUser.HasPermission(Permissions.Dashboard.ViewTeam);
 
     public Guid? DepartmentId => ParseClaim("department_id");
 

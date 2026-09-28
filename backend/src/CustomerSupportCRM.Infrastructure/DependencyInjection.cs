@@ -1,5 +1,6 @@
 using CustomerSupportCRM.Application.Ai;
 using CustomerSupportCRM.Application.Channels;
+using CustomerSupportCRM.Application.Integrations;
 using CustomerSupportCRM.Application.Reports;
 using CustomerSupportCRM.Domain.Enums;
 using CustomerSupportCRM.Infrastructure.Ai;
@@ -12,6 +13,7 @@ using CustomerSupportCRM.Infrastructure.Caching;
 using CustomerSupportCRM.Infrastructure.Identity;
 using CustomerSupportCRM.Infrastructure.Import;
 using CustomerSupportCRM.Infrastructure.Persistence;
+using CustomerSupportCRM.Infrastructure.Integrations;
 using CustomerSupportCRM.Infrastructure.Reports;
 using CustomerSupportCRM.Infrastructure.Persistence.Interceptors;
 using CustomerSupportCRM.Infrastructure.Sla;
@@ -89,6 +91,7 @@ public static class DependencyInjection
         services.AddScoped<IAiCallLogger, AiCallLogger>();
 
         services.AddScoped<IReportExporter, ReportExporter>();
+        services.AddScoped<IWebhookDispatcher, WebhookDispatcher>();
 
         // One adapter instance per channel the local provider covers. Registering them
         // individually rather than one multiplexing adapter keeps IChannelAdapter's
