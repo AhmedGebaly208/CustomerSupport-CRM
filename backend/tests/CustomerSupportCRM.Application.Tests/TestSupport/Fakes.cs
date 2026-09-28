@@ -162,3 +162,51 @@ public sealed class FakeIdentityService : IIdentityService
     public Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException(NotExercisedHere);
 }
+
+/// <summary>In-memory file storage. Keeps bytes in a dictionary so attachment behaviour can
+/// be exercised without touching the disk.</summary>
+public sealed class FakeFileStorage : IFileStorage
+{
+    private readonly Dictionary<string, byte[]> _files = [];
+
+    /// <summary>Extensions the fake refuses, mirroring the real allow-list closely enough
+    /// to exercise the rejection path.</summary>
+    public HashSet<string> AllowedExtensions { get; } =
+        [".pdf", ".png", ".jpg", ".txt", ".csv", ".xlsx", ".docx"];
+
+    public async Task<string> SaveAsync(
+        Stream content, string fileName, string subFolder, CancellationToken cancellationToken = default)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+
+        if (!AllowedExtensions.Contains(extension))
+            throw new InvalidOperationException($"File type '{extension}' is not allowed.");
+
+        using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, cancellationToken);
+
+        var path = $"{subFolder}/{Guid.NewGuid():N}{extension}";
+        _files[path] = buffer.ToArray();
+        return path;
+    }
+
+    public Task<Stream?> OpenAsync(string relativePath, CancellationToken cancellationToken = default) =>
+        Task.FromResult<Stream?>(_files.TryGetValue(relativePath, out var bytes)
+            ? new MemoryStream(bytes)
+            : null);
+
+    public Task DeleteAsync(string relativePath, CancellationToken cancellationToken = default)
+    {
+        _files.Remove(relativePath);
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>Runs the unit of work inline. The in-memory provider has no real transactions,
+/// and these tests assert on outcomes rather than on isolation semantics.</summary>
+public sealed class FakeTransactionRunner : ITransactionRunner
+{
+    public Task<T> RunAsync<T>(Func<Task<T>> work, CancellationToken cancellationToken = default) => work();
+
+    public async Task RunAsync(Func<Task> work, CancellationToken cancellationToken = default) => await work();
+}

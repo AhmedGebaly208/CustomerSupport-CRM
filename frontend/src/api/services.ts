@@ -1,6 +1,11 @@
 import { http } from './client'
 import type {
   Agent,
+  AttachmentDetail,
+  CustomerActivityItem,
+  CustomerActivityType,
+  CustomerImportResult,
+  CustomerMergeResult,
   BulkOperationResult,
   CategoryReorderItem,
   CategoryUpsertRequest,
@@ -166,6 +171,67 @@ export const customersApi = {
     },
   ) {
     const { data } = await http.post<Interaction>(`/customers/${id}/interactions`, request)
+    return data
+  },
+
+  // ---- Attachments ----
+
+  async attachments(id: string) {
+    const { data } = await http.get<AttachmentDetail[]>(`/customers/${id}/attachments`)
+    return data
+  },
+  async uploadAttachment(id: string, file: File) {
+    const form = new FormData()
+    form.append('file', file)
+    // Let the browser set the multipart boundary; overriding Content-Type breaks it.
+    const { data } = await http.post<AttachmentDetail>(`/customers/${id}/attachments`, form, {
+      headers: { 'Content-Type': undefined },
+    })
+    return data
+  },
+  /** Absolute download URL; the browser fetches it with the session's bearer token. */
+  attachmentUrl(id: string, attachmentId: string) {
+    return `${http.defaults.baseURL}/customers/${id}/attachments/${attachmentId}`
+  },
+  async downloadAttachment(id: string, attachmentId: string) {
+    const { data } = await http.get<Blob>(`/customers/${id}/attachments/${attachmentId}`, {
+      responseType: 'blob',
+    })
+    return data
+  },
+  async deleteAttachment(id: string, attachmentId: string) {
+    await http.delete(`/customers/${id}/attachments/${attachmentId}`)
+  },
+
+  // ---- Merge ----
+
+  async merge(survivorId: string, loserId: string, reason?: string | null) {
+    const { data } = await http.post<CustomerMergeResult>('/customers/merge', {
+      survivorId,
+      loserId,
+      reason: reason ?? null,
+    })
+    return data
+  },
+
+  // ---- Import ----
+
+  async import(file: File) {
+    const form = new FormData()
+    form.append('file', file)
+    const { data } = await http.post<CustomerImportResult>('/customers/import', form, {
+      headers: { 'Content-Type': undefined },
+    })
+    return data
+  },
+
+  // ---- Activity timeline ----
+
+  async activity(id: string, page = 1, pageSize = 25, types?: CustomerActivityType[]) {
+    const { data } = await http.get<PagedResult<CustomerActivityItem>>(`/customers/${id}/activity`, {
+      params: { page, pageSize, types },
+      paramsSerializer: { indexes: null },
+    })
     return data
   },
 }

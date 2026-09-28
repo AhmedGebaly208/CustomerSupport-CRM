@@ -1,4 +1,6 @@
 using CustomerSupportCRM.Application.Customers;
+using CustomerSupportCRM.Application.Customers.Validators;
+using CustomerSupportCRM.Infrastructure.Import;
 using CustomerSupportCRM.Application.Tickets;
 using CustomerSupportCRM.Domain.Entities;
 using CustomerSupportCRM.Infrastructure.Persistence;
@@ -19,6 +21,8 @@ public sealed class TestHarness : IDisposable
         Identity = new FakeIdentityService();
         Numbers = new FakeReferenceNumberGenerator();
         Scope = new FakeScopeProvider();
+        Storage = new FakeFileStorage();
+        Transactions = new FakeTransactionRunner();
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase($"crm-tests-{Guid.NewGuid()}")
@@ -31,7 +35,10 @@ public sealed class TestHarness : IDisposable
         Db = new AppDbContext(options);
 
         Tickets = new TicketService(Db, CurrentUser, Clock, Numbers, Identity, Scope);
-        Customers = new CustomerService(Db, CurrentUser, Clock, Numbers, Identity, Scope);
+        Customers = new CustomerService(
+            Db, CurrentUser, Clock, Numbers, Identity, Scope,
+            Storage, Transactions, [new CsvCustomerImportParser()],
+            new CreateCustomerRequestValidator());
     }
 
     public AppDbContext Db { get; }
@@ -40,6 +47,8 @@ public sealed class TestHarness : IDisposable
     public FakeIdentityService Identity { get; }
     public FakeReferenceNumberGenerator Numbers { get; }
     public FakeScopeProvider Scope { get; }
+    public FakeFileStorage Storage { get; }
+    public FakeTransactionRunner Transactions { get; }
 
     public ITicketService Tickets { get; }
     public ICustomerService Customers { get; }

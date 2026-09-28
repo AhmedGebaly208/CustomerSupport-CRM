@@ -77,6 +77,11 @@ export const PERMISSIONS = {
   customersCreate: 'customers.create',
   customersEdit: 'customers.edit',
   customersDelete: 'customers.delete',
+  customersMerge: 'customers.merge',
+  customersImport: 'customers.import',
+  attachmentsView: 'attachments.view',
+  attachmentsUpload: 'attachments.upload',
+  attachmentsDelete: 'attachments.delete',
   ticketsView: 'tickets.view',
   ticketsCreate: 'tickets.create',
   ticketsEdit: 'tickets.edit',
@@ -482,6 +487,73 @@ export interface CategoryReorderItem {
   id: string
   parentId: string | null
   sortOrder: number
+}
+
+
+// ---- Customer 360 (area 1) ----
+
+export enum AttachmentOwnerType {
+  Customer = 0,
+  Ticket = 1,
+  TicketComment = 2,
+  Interaction = 3,
+}
+
+export interface AttachmentDetail {
+  id: string
+  ownerType: AttachmentOwnerType
+  ownerId: string
+  fileName: string
+  contentType: string
+  sizeBytes: number
+  uploadedBy: string | null
+  uploadedByName: string | null
+  createdAt: string
+}
+
+export interface CustomerMergeResult {
+  survivorId: string
+  mergedCustomerId: string
+  ticketsMoved: number
+  interactionsMoved: number
+  notesMoved: number
+  contactsMoved: number
+  attachmentsMoved: number
+}
+
+export interface CustomerImportRowResult {
+  rowNumber: number
+  succeeded: boolean
+  customerId: string | null
+  code: string | null
+  errors: string[]
+}
+
+export interface CustomerImportResult {
+  totalRows: number
+  succeededCount: number
+  failedCount: number
+  rows: CustomerImportRowResult[]
+}
+
+export enum CustomerActivityType {
+  Ticket = 0,
+  Interaction = 1,
+  Note = 2,
+  Attachment = 3,
+}
+
+export interface CustomerActivityItem {
+  type: CustomerActivityType
+  id: string
+  occurredAt: string
+  titleAr: string | null
+  titleEn: string | null
+  snippet: string | null
+  refNumber: string | null
+  status: string | null
+  actorId: string | null
+  actorName: string | null
 }
 
 /** RFC 7807 problem response, as produced by the API's exception middleware. */

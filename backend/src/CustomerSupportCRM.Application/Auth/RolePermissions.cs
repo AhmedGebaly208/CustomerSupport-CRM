@@ -33,6 +33,10 @@ public static class RolePermissions
 
                 Permissions.Customers.View, Permissions.Customers.Create,
                 Permissions.Customers.Edit, Permissions.Customers.Delete,
+                Permissions.Customers.Merge, Permissions.Customers.Import,
+
+                Permissions.Attachments.View, Permissions.Attachments.Upload,
+                Permissions.Attachments.Delete,
 
                 Permissions.Tickets.View, Permissions.Tickets.Create, Permissions.Tickets.Edit,
                 Permissions.Tickets.Assign, Permissions.Tickets.Comment,
@@ -50,6 +54,10 @@ public static class RolePermissions
             [
                 Permissions.Customers.View, Permissions.Customers.Create, Permissions.Customers.Edit,
 
+                // Agents attach and read files as part of ordinary work, but deleting one
+                // removes evidence from a ticket, so that stays supervisory.
+                Permissions.Attachments.View, Permissions.Attachments.Upload,
+
                 Permissions.Tickets.View, Permissions.Tickets.Create, Permissions.Tickets.Edit,
                 Permissions.Tickets.Assign, Permissions.Tickets.Comment,
                 Permissions.Tickets.ViewInternal, Permissions.Tickets.Close,
@@ -64,7 +72,12 @@ public static class RolePermissions
             [
                 Permissions.Tickets.View,
                 Permissions.Tickets.Create,
-                Permissions.Tickets.Comment
+                Permissions.Tickets.Comment,
+
+                // A portal customer sees files on their own tickets; the portal story
+                // scopes which tickets those are.
+                Permissions.Attachments.View,
+                Permissions.Attachments.Upload
             ]
         };
 

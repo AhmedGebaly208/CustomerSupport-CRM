@@ -1,7 +1,9 @@
 using CustomerSupportCRM.Application.Auth;
+using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Models;
 using CustomerSupportCRM.Application.Customers;
 using CustomerSupportCRM.Application.Customers.Dtos;
+using CustomerSupportCRM.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -81,6 +83,105 @@ public sealed class CustomersController(ICustomerService customers) : Controller
         await customers.DeleteNoteAsync(id, noteId, ct);
         return NoContent();
     }
+
+    // ---- Attachments (area 1) ----
+    //
+    // Routed under the customer so the existing scope check gates them; the service
+    // resolves ticket and comment owners back to their department the same way.
+
+    [HttpGet("{id:guid}/attachments")]
+    [Authorize(Policy = Permissions.Attachments.View)]
+    [ProducesResponseType<IReadOnlyList<AttachmentDetailDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<AttachmentDetailDto>>> GetAttachments(
+        Guid id, CancellationToken ct) =>
+        Ok(await customers.ListAttachmentsAsync(AttachmentOwnerType.Customer, id, ct));
+
+    [HttpPost("{id:guid}/attachments")]
+    [Authorize(Policy = Permissions.Attachments.Upload)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType<AttachmentDetailDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AttachmentDetailDto>> UploadAttachment(
+        Guid id, IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            throw new BadRequestException("No file was uploaded.");
+
+        await using var stream = file.OpenReadStream();
+
+        var attachment = await customers.AddAttachmentAsync(
+            AttachmentOwnerType.Customer, id, stream, file.FileName, file.ContentType, ct);
+
+        return CreatedAtAction(nameof(GetAttachments), new { id }, attachment);
+    }
+
+    /// <summary>Streams the file back under its original name and content type.</summary>
+    [HttpGet("{id:guid}/attachments/{attachmentId:guid}")]
+    [Authorize(Policy = Permissions.Attachments.View)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadAttachment(Guid id, Guid attachmentId, CancellationToken ct)
+    {
+        var (content, contentType, fileName) =
+            await customers.OpenAttachmentAsync(AttachmentOwnerType.Customer, id, attachmentId, ct);
+
+        return File(content, contentType, fileName);
+    }
+
+    [HttpDelete("{id:guid}/attachments/{attachmentId:guid}")]
+    [Authorize(Policy = Permissions.Attachments.Delete)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteAttachment(Guid id, Guid attachmentId, CancellationToken ct)
+    {
+        await customers.DeleteAttachmentAsync(AttachmentOwnerType.Customer, id, attachmentId, ct);
+        return NoContent();
+    }
+
+    // ---- Merge ----
+
+    /// <summary>Folds one customer into another. Everything the loser owns moves to the
+    /// survivor in a single transaction, and the loser is soft-deleted with an audit entry
+    /// naming where its history went.</summary>
+    [HttpPost("merge")]
+    [Authorize(Policy = Permissions.Customers.Merge)]
+    [ProducesResponseType<CustomerMergeResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<CustomerMergeResultDto>> Merge(
+        CustomerMergeRequest request, CancellationToken ct) =>
+        Ok(await customers.MergeAsync(request, ct));
+
+    // ---- Bulk import ----
+
+    /// <summary>Imports customers from a .csv or .xlsx file. Every row is reported
+    /// individually; one bad row never aborts the rest.</summary>
+    [HttpPost("import")]
+    [Authorize(Policy = Permissions.Customers.Import)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType<CustomerImportResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<CustomerImportResultDto>> Import(IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            throw new BadRequestException("No file was uploaded.");
+
+        // Buffered to a MemoryStream because ClosedXML needs a seekable stream, and the
+        // upload size is already capped by the request limits.
+        using var buffer = new MemoryStream();
+        await file.CopyToAsync(buffer, ct);
+        buffer.Position = 0;
+
+        return Ok(await customers.ImportAsync(buffer, file.FileName, file.ContentType, ct));
+    }
+
+    // ---- Activity timeline ----
+
+    /// <summary>One chronological feed interleaving tickets, interactions, notes and
+    /// attachments for this customer.</summary>
+    [HttpGet("{id:guid}/activity")]
+    [ProducesResponseType<PagedResult<CustomerActivityItemDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<CustomerActivityItemDto>>> GetActivity(
+        Guid id, [FromQuery] CustomerActivityQuery query, CancellationToken ct) =>
+        Ok(await customers.GetActivityAsync(id, query, ct));
 
     // ---- Interaction history ----
 

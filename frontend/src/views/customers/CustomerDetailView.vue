@@ -18,6 +18,8 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
+import CustomerActivity from '@/components/CustomerActivity.vue'
+import CustomerAttachments from '@/components/CustomerAttachments.vue'
 import { customersApi, ticketsApi } from '@/api/services'
 import { problemMessage } from '@/api/client'
 import { useUiStore } from '@/stores/ui'
@@ -210,14 +212,26 @@ onMounted(load)
         </div>
       </section>
 
-      <Tabs value="tickets">
+      <Tabs value="activity">
         <TabList>
+          <Tab value="activity">{{ t('activity.title') }}</Tab>
           <Tab value="tickets">{{ t('customer.tickets') }}</Tab>
+          <Tab value="attachments">{{ t('attachment.title') }}</Tab>
           <Tab value="interactions">{{ t('customer.interactions') }}</Tab>
           <Tab value="notes">{{ t('customer.notes') }}</Tab>
         </TabList>
 
         <TabPanels>
+          <!-- Consolidated timeline -->
+          <TabPanel value="activity">
+            <CustomerActivity :customer-id="id" />
+          </TabPanel>
+
+          <!-- Attachments -->
+          <TabPanel value="attachments">
+            <CustomerAttachments :customer-id="id" />
+          </TabPanel>
+
           <!-- Tickets -->
           <TabPanel value="tickets">
             <DataTable

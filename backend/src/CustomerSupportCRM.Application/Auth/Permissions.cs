@@ -23,6 +23,20 @@ public static class Permissions
         public const string Create = "customers.create";
         public const string Edit = "customers.edit";
         public const string Delete = "customers.delete";
+
+        /// <summary>Folding one customer record into another. Irreversible in practice, so
+        /// it is supervisory rather than part of ordinary editing.</summary>
+        public const string Merge = "customers.merge";
+
+        /// <summary>Bulk import from a spreadsheet.</summary>
+        public const string Import = "customers.import";
+    }
+
+    public static class Attachments
+    {
+        public const string View = "attachments.view";
+        public const string Upload = "attachments.upload";
+        public const string Delete = "attachments.delete";
     }
 
     public static class Tickets
@@ -72,6 +86,8 @@ public static class Permissions
     [
         Users.View, Users.Manage,
         Customers.View, Customers.Create, Customers.Edit, Customers.Delete,
+        Customers.Merge, Customers.Import,
+        Attachments.View, Attachments.Upload, Attachments.Delete,
         Tickets.View, Tickets.Create, Tickets.Edit, Tickets.Assign, Tickets.Comment,
         Tickets.ViewInternal, Tickets.Close, Tickets.Delete,
         Dashboard.View, Dashboard.ViewTeam,

@@ -1,6 +1,7 @@
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Infrastructure.Caching;
 using CustomerSupportCRM.Infrastructure.Identity;
+using CustomerSupportCRM.Infrastructure.Import;
 using CustomerSupportCRM.Infrastructure.Persistence;
 using CustomerSupportCRM.Infrastructure.Persistence.Interceptors;
 using CustomerSupportCRM.Infrastructure.Storage;
@@ -62,6 +63,12 @@ public static class DependencyInjection
 
         // Singleton: the cached configuration is process-wide, not per-request.
         services.AddSingleton<IConfigCache, MemoryConfigCache>();
+
+        services.AddScoped<ITransactionRunner, TransactionRunner>();
+
+        // Both parsers are registered; the service picks by file extension and content type.
+        services.AddScoped<ICustomerImportParser, CsvCustomerImportParser>();
+        services.AddScoped<ICustomerImportParser, XlsxCustomerImportParser>();
 
         return services;
     }

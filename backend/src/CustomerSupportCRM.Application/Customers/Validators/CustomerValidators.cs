@@ -67,6 +67,19 @@ public sealed class SaveCustomerContactRequestValidator : AbstractValidator<Save
     }
 }
 
+public sealed class CustomerMergeRequestValidator : AbstractValidator<CustomerMergeRequest>
+{
+    public CustomerMergeRequestValidator()
+    {
+        RuleFor(x => x.SurvivorId).NotEmpty();
+        RuleFor(x => x.LoserId).NotEmpty();
+        RuleFor(x => x.LoserId)
+            .NotEqual(x => x.SurvivorId)
+            .WithMessage("A customer cannot be merged into itself.");
+        RuleFor(x => x.Reason).MaximumLength(1000);
+    }
+}
+
 public sealed class CreateCustomerNoteRequestValidator : AbstractValidator<CreateCustomerNoteRequest>
 {
     public CreateCustomerNoteRequestValidator()

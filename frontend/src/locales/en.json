@@ -370,5 +370,46 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "addChild": "Add a sub-category"
+  },
+  "attachment": {
+    "title": "Attachments",
+    "upload": "Upload a file",
+    "uploadHint": "PDF, images, documents, spreadsheets, archives — up to 20 MB",
+    "uploaded": "File uploaded",
+    "none": "No attachments",
+    "file": "File",
+    "size": "Size",
+    "uploadedBy": "Uploaded by",
+    "download": "Download",
+    "deleteConfirm": "Delete the file {name}?"
+  },
+  "activity": {
+    "title": "Activity",
+    "empty": "No activity recorded",
+    "allTypes": "All types",
+    "loadMore": "Load more",
+    "type": {
+      "Ticket": "Ticket",
+      "Interaction": "Interaction",
+      "Note": "Note",
+      "Attachment": "Attachment"
+    }
+  },
+  "merge": {
+    "action": "Merge customers",
+    "selectHint": "Select exactly two customers to enable merging",
+    "explain": "Every ticket, interaction, note and attachment moves to the customer you keep; the other is removed with a record of where its history went.",
+    "keep": "Customer to keep",
+    "reason": "Reason (optional)",
+    "confirm": "Confirm merge",
+    "done": "Merged — {tickets} ticket(s) moved"
+  },
+  "import": {
+    "action": "Import customers",
+    "choose": "Choose a CSV or XLSX file",
+    "explain": "The first row must hold column headers such as FullNameAr, FullNameEn, Email and Phone. A bad row is reported and never stops the rest.",
+    "succeeded": "{count} succeeded",
+    "failed": "{count} failed",
+    "row": "Row"
   }
 }

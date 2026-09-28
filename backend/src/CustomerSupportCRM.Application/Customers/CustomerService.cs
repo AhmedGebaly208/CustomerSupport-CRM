@@ -5,18 +5,51 @@ using CustomerSupportCRM.Application.Customers.Dtos;
 using CustomerSupportCRM.Domain.Common;
 using CustomerSupportCRM.Domain.Entities;
 using CustomerSupportCRM.Domain.Tickets;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerSupportCRM.Application.Customers;
 
-public sealed class CustomerService(
-    IAppDbContext db,
-    ICurrentUser currentUser,
-    IClock clock,
-    IReferenceNumberGenerator numbers,
-    IIdentityService identity,
-    IScopeProvider scope) : ICustomerService
+public sealed partial class CustomerService : ICustomerService
 {
+    private readonly IAppDbContext db;
+    private readonly ICurrentUser currentUser;
+    private readonly IClock clock;
+    private readonly IReferenceNumberGenerator numbers;
+    private readonly IIdentityService identity;
+    private readonly IScopeProvider scope;
+    private readonly IFileStorage storage;
+    private readonly ITransactionRunner transactions;
+    private readonly IEnumerable<ICustomerImportParser> importParsers;
+    private readonly IValidator<CreateCustomerRequest> importValidator;
+
+    public CustomerService(
+        IAppDbContext db,
+        ICurrentUser currentUser,
+        IClock clock,
+        IReferenceNumberGenerator numbers,
+        IIdentityService identity,
+        IScopeProvider scope,
+        IFileStorage storage,
+        ITransactionRunner transactions,
+        IEnumerable<ICustomerImportParser> importParsers,
+        IValidator<CreateCustomerRequest> importValidator)
+    {
+        this.db = db;
+        this.currentUser = currentUser;
+        this.clock = clock;
+        this.numbers = numbers;
+        this.identity = identity;
+        this.scope = scope;
+        this.storage = storage;
+        this.transactions = transactions;
+        this.importParsers = importParsers;
+        this.importValidator = importValidator;
+    }
+
+    /// <summary>Shorthand so the extended half reads cleanly.</summary>
+    private Task<T> RunInTransactionAsync<T>(Func<Task<T>> work) => transactions.RunAsync(work);
+
     public async Task<PagedResult<CustomerListItemDto>> SearchAsync(CustomerQuery query, CancellationToken ct = default)
     {
         // Scope first, so no later filter can widen it back out.
