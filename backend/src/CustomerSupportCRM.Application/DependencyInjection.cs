@@ -4,6 +4,7 @@ using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Customers;
 using CustomerSupportCRM.Application.Lookups;
 using CustomerSupportCRM.Application.SavedViews;
+using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.SystemConfig;
 using CustomerSupportCRM.Application.Tickets;
 using FluentValidation;
@@ -22,6 +23,12 @@ public static class DependencyInjection
         services.AddScoped<ILookupService, LookupService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<ISystemConfigService, SystemConfigService>();
+
+        services.AddScoped<ISlaService, SlaService>();
+        services.AddScoped<ISlaPolicyService, SlaPolicyService>();
+        services.AddScoped<IAutoAssignmentService, AutoAssignmentService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<ISlaEvaluator, SlaEvaluator>();
 
         services.AddSingleton<IClock, SystemClock>();
 

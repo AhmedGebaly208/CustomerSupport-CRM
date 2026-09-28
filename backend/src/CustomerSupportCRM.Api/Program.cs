@@ -32,6 +32,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IScopeProvider, ScopeProvider>();
 
+// Escalation has to happen whether or not anyone is looking at the ticket, so the sweep runs
+// on a timer in the host rather than on a request path.
+builder.Services.AddHostedService<SlaEvaluatorHostedService>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

@@ -3,7 +3,9 @@ using CustomerSupportCRM.Application.Auth.Dtos;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Models;
+using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Domain.Common;
+using CustomerSupportCRM.Domain.Sla;
 using CustomerSupportCRM.Domain.Tickets;
 
 namespace CustomerSupportCRM.Application.Tests.TestSupport;
@@ -109,6 +111,13 @@ public sealed class FakeIdentityService : IIdentityService
         Task.FromResult<IReadOnlyList<AgentDto>>(
             departmentId is null ? Agents : Agents.Where(a => a.DepartmentId == departmentId).ToList());
 
+    /// <summary>Role membership is not modelled in the fake agent list, so this returns
+    /// nothing. Tests that care about role-targeted notifications set the recipients
+    /// directly instead.</summary>
+    public Task<IReadOnlyList<Guid>> GetUserIdsInRoleAsync(
+        string roleName, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<Guid>>([]);
+
     public Task<IReadOnlyDictionary<Guid, string>> GetUserDisplayNamesAsync(
         IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
     {
@@ -209,4 +218,14 @@ public sealed class FakeTransactionRunner : ITransactionRunner
     public Task<T> RunAsync<T>(Func<Task<T>> work, CancellationToken cancellationToken = default) => work();
 
     public async Task RunAsync(Func<Task> work, CancellationToken cancellationToken = default) => await work();
+}
+
+/// <summary>A calendar that is always open, so SLA arithmetic in tests is plain elapsed time
+/// and a test written on a Thursday does not behave differently from one written on a Monday.
+/// Tests that exercise working hours build their own BusinessCalendar instead.</summary>
+public sealed class FakeBusinessCalendarProvider : IBusinessCalendarProvider
+{
+    public BusinessCalendar Calendar { get; set; } = BusinessCalendar.TwentyFourSeven(TimeZoneInfo.Utc);
+
+    public Task<BusinessCalendar> GetAsync(CancellationToken ct = default) => Task.FromResult(Calendar);
 }

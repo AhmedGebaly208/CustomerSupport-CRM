@@ -399,6 +399,21 @@ public sealed partial class IdentityService
         });
     }
 
+    public async Task<IReadOnlyList<Guid>> GetUserIdsInRoleAsync(
+        string roleName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(roleName)) return [];
+
+        // Deactivated accounts are excluded: notifying someone who can no longer sign in
+        // makes an escalation look handled when nobody saw it.
+        return await (
+            from userRole in db.UserRoles
+            join role in db.Roles on userRole.RoleId equals role.Id
+            join user in userManager.Users on userRole.UserId equals user.Id
+            where role.Name == roleName && user.IsActive
+            select user.Id).Distinct().ToListAsync(cancellationToken);
+    }
+
     private Guid RequireAuthenticatedCaller() =>
         currentUser.UserId ?? throw new ForbiddenException("Not authenticated.");
 

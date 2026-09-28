@@ -18,7 +18,8 @@ import Dialog from 'primevue/dialog'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import TicketSidePanels from '@/components/TicketSidePanels.vue'
-import { authApi, ticketsApi } from '@/api/services'
+import { authApi, slaApi, ticketsApi } from '@/api/services'
+import SlaBadge from '@/components/SlaBadge.vue'
 import { problemMessage } from '@/api/client'
 import { useUiStore } from '@/stores/ui'
 import { useFormat } from '@/composables/useFormat'
@@ -29,6 +30,7 @@ import {
   type TicketComment,
   type TicketDetail,
   type TicketHistoryEntry,
+  type TicketSlaStatus,
 } from '@/types/api'
 
 const props = defineProps<{ id: string }>()
@@ -66,10 +68,20 @@ const nextStatuses = computed(() =>
   })),
 )
 
+/** Live SLA state. Kept beside the ticket rather than on it because it is derived from the
+ *  clock and changes every minute, while the ticket itself does not. */
+const slaStatus = ref<TicketSlaStatus | null>(null)
+
 async function load() {
   loading.value = true
   try {
     ticket.value = await ticketsApi.getById(props.id)
+
+    slaApi
+      .ticketStatus(props.id)
+      .then((s) => (slaStatus.value = s))
+      // The ticket is readable without its badges, so this failure stays quiet.
+      .catch(() => (slaStatus.value = null))
 
     const [c, h, a] = await Promise.allSettled([
       ticketsApi.comments(props.id),
@@ -245,12 +257,18 @@ onMounted(load)
 
           <div>
             <div class="text-xs text-surface-500 dark:text-surface-400">{{ t('ticket.firstResponse') }}</div>
-            <div class="text-sm">{{ formatDateTime(ticket.firstRespondedAt) }}</div>
+            <SlaBadge v-if="slaStatus" :clock="slaStatus.firstResponse" show-remaining class="mt-1" />
+            <div v-else class="text-sm">{{ formatDateTime(ticket.firstRespondedAt) }}</div>
           </div>
 
           <div>
             <div class="text-xs text-surface-500 dark:text-surface-400">{{ t('ticket.resolutionDue') }}</div>
-            <div class="text-sm" :class="isOverdue(ticket.resolutionDueAt) ? 'font-medium text-red-500' : ''">
+            <SlaBadge v-if="slaStatus" :clock="slaStatus.resolution" show-remaining class="mt-1" />
+            <div
+              v-else
+              class="text-sm"
+              :class="isOverdue(ticket.resolutionDueAt) ? 'font-medium text-red-500' : ''"
+            >
               {{ formatDateTime(ticket.resolutionDueAt) }}
             </div>
           </div>

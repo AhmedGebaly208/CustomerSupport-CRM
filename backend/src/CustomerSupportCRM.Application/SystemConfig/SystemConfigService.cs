@@ -1,5 +1,6 @@
 using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Interfaces;
+using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.SystemConfig.Dtos;
 using CustomerSupportCRM.Domain.Entities;
 using CustomerSupportCRM.Domain.Enums;
@@ -123,7 +124,7 @@ public sealed class SystemConfigService(IAppDbContext db, IClock clock, IConfigC
         }
 
         await db.SaveChangesAsync(ct);
-        cache.Remove(BusinessHoursKey);
+        InvalidateSchedule();
 
         return await GetBusinessHoursAsync(ct);
     }
@@ -161,6 +162,7 @@ public sealed class SystemConfigService(IAppDbContext db, IClock clock, IConfigC
 
         db.Holidays.Add(holiday);
         await db.SaveChangesAsync(ct);
+        InvalidateSchedule();
 
         return new HolidayDto(holiday.Id, holiday.Date, holiday.NameAr, holiday.NameEn);
     }
@@ -173,6 +175,17 @@ public sealed class SystemConfigService(IAppDbContext db, IClock clock, IConfigC
         holiday.IsDeleted = true;
         holiday.DeletedAt = clock.UtcNow;
         await db.SaveChangesAsync(ct);
+        InvalidateSchedule();
+    }
+
+    /// <summary>Drops both cached views of the working schedule. The SLA calendar is derived
+    /// from the same rows as the business-hours list and from the holidays, so a change to
+    /// either must clear it — otherwise a newly declared holiday would keep counting as a
+    /// working day until the process restarted.</summary>
+    private void InvalidateSchedule()
+    {
+        cache.Remove(BusinessHoursKey);
+        cache.Remove(SlaCacheKeys.BusinessCalendar);
     }
 
     // ---- Feature flags ----

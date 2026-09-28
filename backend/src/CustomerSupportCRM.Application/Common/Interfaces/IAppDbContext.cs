@@ -25,6 +25,12 @@ public interface IAppDbContext
     DbSet<TicketLink> TicketLinks { get; }
     DbSet<UserSavedView> UserSavedViews { get; }
 
+    DbSet<SlaPolicy> SlaPolicies { get; }
+    DbSet<SlaTarget> SlaTargets { get; }
+    DbSet<SlaEscalationRule> SlaEscalationRules { get; }
+    DbSet<SlaEscalationEvent> SlaEscalationEvents { get; }
+    DbSet<Notification> Notifications { get; }
+
     DbSet<Department> Departments { get; }
     DbSet<Branch> Branches { get; }
     DbSet<AuditLog> AuditLogs { get; }

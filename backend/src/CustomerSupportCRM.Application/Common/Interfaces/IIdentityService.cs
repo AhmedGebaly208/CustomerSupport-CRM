@@ -28,6 +28,10 @@ public interface IIdentityService
     Task ReactivateUserAsync(Guid userId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<string>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Ids of the active users in a role. Used by the SLA escalation rules, which
+    /// notify a role rather than named individuals so the rule survives staff changes.</summary>
+    Task<IReadOnlyList<Guid>> GetUserIdsInRoleAsync(string roleName, CancellationToken cancellationToken = default);
     Task SetUserRolesAsync(Guid userId, IReadOnlyList<string> roleNames, CancellationToken cancellationToken = default);
 
     /// <summary>Self-service. Invalidates the caller's refresh token on success.</summary>

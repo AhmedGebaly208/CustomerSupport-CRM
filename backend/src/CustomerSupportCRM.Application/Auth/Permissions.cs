@@ -62,6 +62,15 @@ public static class Permissions
         public const string ViewTeam = "dashboard.viewteam";
     }
 
+    /// <summary>Service-level agreements (PDF area 5). Viewing a ticket's SLA state needs no
+    /// permission of its own — it rides on tickets.view, because a badge the agent cannot see
+    /// is a target they cannot meet. Only editing the policies is gated.</summary>
+    public static class Sla
+    {
+        public const string View = "sla.view";
+        public const string Manage = "sla.manage";
+    }
+
     public static class Lookups
     {
         public const string View = "lookups.view";
@@ -91,6 +100,7 @@ public static class Permissions
         Tickets.View, Tickets.Create, Tickets.Edit, Tickets.Assign, Tickets.Comment,
         Tickets.ViewInternal, Tickets.Close, Tickets.Delete,
         Dashboard.View, Dashboard.ViewTeam,
+        Sla.View, Sla.Manage,
         Lookups.View, Lookups.Manage,
         AuditLogs.View,
         SystemConfig.View, SystemConfig.Manage

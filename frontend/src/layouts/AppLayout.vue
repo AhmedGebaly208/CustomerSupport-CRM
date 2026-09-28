@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import Avatar from 'primevue/avatar'
+import NotificationBell from '@/components/NotificationBell.vue'
 import Drawer from 'primevue/drawer'
 import { useAuthStore } from '@/stores/auth'
 import { PERMISSIONS } from '@/types/api'
@@ -33,6 +34,10 @@ const navItems = computed(() => {
 
   if (auth.hasPermission(PERMISSIONS.lookupsManage)) {
     items.push({ label: t('nav.categories'), icon: 'pi pi-sitemap', to: { name: 'ticket-categories' } })
+  }
+
+  if (auth.hasPermission(PERMISSIONS.slaView)) {
+    items.push({ label: t('nav.sla'), icon: 'pi pi-stopwatch', to: { name: 'sla-admin' } })
   }
 
   if (auth.hasPermission(PERMISSIONS.auditLogsView)) {
@@ -112,6 +117,8 @@ function navigate(to: { name: string }) {
       </div>
 
       <div class="ms-auto flex items-center gap-2">
+        <NotificationBell />
+
         <Button
           text
           rounded

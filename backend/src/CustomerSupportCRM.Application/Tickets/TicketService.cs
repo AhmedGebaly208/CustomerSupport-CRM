@@ -1,6 +1,7 @@
 using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Common.Models;
+using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.Tickets.Dtos;
 using CustomerSupportCRM.Domain.Common;
 using CustomerSupportCRM.Domain.Entities;
@@ -18,6 +19,9 @@ public sealed partial class TicketService : ITicketService
     private readonly IReferenceNumberGenerator numbers;
     private readonly IIdentityService identity;
     private readonly IScopeProvider scope;
+    private readonly ISlaService sla;
+    private readonly IAutoAssignmentService autoAssignment;
+    private readonly INotificationService notifications;
 
     public TicketService(
         IAppDbContext db,
@@ -25,7 +29,10 @@ public sealed partial class TicketService : ITicketService
         IClock clock,
         IReferenceNumberGenerator numbers,
         IIdentityService identity,
-        IScopeProvider scope)
+        IScopeProvider scope,
+        ISlaService sla,
+        IAutoAssignmentService autoAssignment,
+        INotificationService notifications)
     {
         this.db = db;
         this.currentUser = currentUser;
@@ -33,6 +40,9 @@ public sealed partial class TicketService : ITicketService
         this.numbers = numbers;
         this.identity = identity;
         this.scope = scope;
+        this.sla = sla;
+        this.autoAssignment = autoAssignment;
+        this.notifications = notifications;
     }
 
     public async Task<PagedResult<TicketListItemDto>> SearchAsync(TicketQuery query, CancellationToken ct = default)
@@ -182,6 +192,26 @@ public sealed partial class TicketService : ITicketService
             AssignedAt = request.AssignedAgentId is null ? null : now
         };
 
+        ticket.CreatedAt = now;
+
+        // The SLA clock starts when the ticket is raised, so the policy is resolved and the
+        // due dates stamped before the row is written rather than by a later sweep.
+        await sla.ApplyPolicyAsync(ticket, ct);
+
+        if (ticket.AssignedAgentId is null)
+        {
+            var policy = ticket.SlaPolicyId is null
+                ? null
+                : await db.SlaPolicies.AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == ticket.SlaPolicyId, ct);
+
+            if (await autoAssignment.PickAgentAsync(ticket, policy, ct) is { } picked)
+            {
+                ticket.AssignedAgentId = picked;
+                ticket.AssignedAt = now;
+            }
+        }
+
         db.Tickets.Add(ticket);
 
         AddHistory(ticket, "Created", null, ticket.Number, null, now);
@@ -225,12 +255,23 @@ public sealed partial class TicketService : ITicketService
         TrackChange(ticket, nameof(Ticket.DepartmentId), ticket.DepartmentId?.ToString(), request.DepartmentId?.ToString(), now);
         TrackChange(ticket, nameof(Ticket.BranchId), ticket.BranchId?.ToString(), request.BranchId?.ToString(), now);
 
+        // Whether the fields the SLA matches on moved, captured before they are overwritten.
+        var reTargeted = ticket.Priority != request.Priority
+                         || ticket.CategoryId != request.CategoryId
+                         || ticket.DepartmentId != request.DepartmentId
+                         || ticket.BranchId != request.BranchId;
+
         ticket.Subject = request.Subject.Trim();
         ticket.Description = request.Description.Trim();
         ticket.Priority = request.Priority;
         ticket.CategoryId = request.CategoryId;
         ticket.DepartmentId = request.DepartmentId;
         ticket.BranchId = request.BranchId;
+
+        // Raising the priority of a ticket must tighten its targets, so the policy is
+        // re-resolved. The clock still runs from the original CreatedAt — the customer has
+        // been waiting since they raised it, not since it was re-categorised.
+        if (reTargeted) await sla.ApplyPolicyAsync(ticket, ct);
 
         await db.SaveChangesAsync(ct);
         return await GetByIdAsync(ticket.Id, ct);
@@ -282,6 +323,24 @@ public sealed partial class TicketService : ITicketService
         }
 
         await db.SaveChangesAsync(ct);
+
+        // After the save, so an agent is never told about work that failed to persist.
+        // Assigning to yourself needs no announcement.
+        if (ticket.AssignedAgentId is { } newAssignee && newAssignee != currentUser.UserId)
+        {
+            await notifications.NotifyAsync(
+                [newAssignee],
+                new NotificationRequest(
+                    NotificationKind.TicketAssigned,
+                    new Dictionary<string, string>
+                    {
+                        ["ticketNumber"] = ticket.Number,
+                        ["subject"] = ticket.Subject
+                    },
+                    ticket.Id),
+                ct);
+        }
+
         return await GetByIdAsync(ticket.Id, ct);
     }
 

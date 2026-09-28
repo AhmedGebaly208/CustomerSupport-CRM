@@ -31,6 +31,7 @@ public static class DbSeeder
         await SeedBranchesAsync(db, cancellationToken);
         await SeedCategoriesAsync(db, departments, cancellationToken);
         await SeedSystemConfigAsync(db, cancellationToken);
+        await SeedSlaAsync(db, cancellationToken);
         await SeedAdminAsync(userManager, configuration, departments, logger);
     }
 
@@ -170,6 +171,87 @@ public static class DbSeeder
                 .Select(channel => new ChannelToggle { Channel = channel, IsEnabled = false }));
         }
 
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>A default, desk-wide SLA policy so tickets carry targets from the first day.
+    ///
+    /// It names no department, branch or category, which makes it the least specific policy
+    /// and therefore the fallback: any policy an administrator adds later automatically wins
+    /// over it without anything having to be deleted.</summary>
+    private static async Task SeedSlaAsync(AppDbContext db, CancellationToken ct)
+    {
+        if (await db.SlaPolicies.AnyAsync(ct)) return;
+
+        var policy = new SlaPolicy
+        {
+            NameAr = "مستوى الخدمة الافتراضي",
+            NameEn = "Default service level",
+            IsActive = true,
+            Rank = 0,
+            CountsBusinessHoursOnly = true,
+            PausedStatuses = nameof(TicketStatus.Pending),
+            AssignmentStrategy = AutoAssignmentStrategy.None
+        };
+
+        // Working minutes, against the seeded Sunday-Thursday 08:00-17:00 week. Urgent is
+        // deliberately tight enough to breach within a single day so the escalation rules
+        // below are exercised rather than theoretical.
+        var targets = new (TicketPriority Priority, int FirstResponse, int Resolution)[]
+        {
+            (TicketPriority.Low, 480, 4320),
+            (TicketPriority.Normal, 240, 2160),
+            (TicketPriority.High, 120, 960),
+            (TicketPriority.Urgent, 30, 240)
+        };
+
+        foreach (var (priority, firstResponse, resolution) in targets)
+        {
+            policy.Targets.Add(new SlaTarget
+            {
+                SlaPolicyId = policy.Id,
+                Priority = priority,
+                FirstResponseMinutes = firstResponse,
+                ResolutionMinutes = resolution
+            });
+        }
+
+        // Two rules per clock: a warning while there is still time to act, and a breach
+        // notice that also raises the escalation level.
+        policy.EscalationRules.Add(new SlaEscalationRule
+        {
+            SlaPolicyId = policy.Id,
+            NameAr = "تحذير قرب تجاوز الاستجابة الأولى",
+            NameEn = "First response approaching breach",
+            Target = SlaTargetKind.FirstResponse,
+            ThresholdPercent = 80,
+            RaiseLevelBy = 0,
+            NotifyRole = Roles.Manager
+        });
+
+        policy.EscalationRules.Add(new SlaEscalationRule
+        {
+            SlaPolicyId = policy.Id,
+            NameAr = "تجاوز الاستجابة الأولى",
+            NameEn = "First response breached",
+            Target = SlaTargetKind.FirstResponse,
+            ThresholdPercent = 100,
+            RaiseLevelBy = 1,
+            NotifyRole = Roles.Manager
+        });
+
+        policy.EscalationRules.Add(new SlaEscalationRule
+        {
+            SlaPolicyId = policy.Id,
+            NameAr = "تجاوز مدة الحل",
+            NameEn = "Resolution breached",
+            Target = SlaTargetKind.Resolution,
+            ThresholdPercent = 100,
+            RaiseLevelBy = 1,
+            NotifyRole = Roles.Manager
+        });
+
+        db.SlaPolicies.Add(policy);
         await db.SaveChangesAsync(ct);
     }
 

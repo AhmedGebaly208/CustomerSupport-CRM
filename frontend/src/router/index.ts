@@ -73,6 +73,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: PERMISSIONS.lookupsManage },
       },
       {
+        path: 'admin/sla',
+        name: 'sla-admin',
+        component: () => import('@/views/admin/sla/SlaAdminView.vue'),
+        meta: { permission: PERMISSIONS.slaView },
+      },
+      {
         path: 'admin/settings',
         name: 'system-config',
         component: () => import('@/views/admin/settings/SystemConfigView.vue'),

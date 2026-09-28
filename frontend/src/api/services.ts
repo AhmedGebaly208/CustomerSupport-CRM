@@ -1,52 +1,60 @@
 import { http } from './client'
 import type {
   Agent,
+  AgentDashboard,
   AttachmentDetail,
-  CustomerActivityItem,
-  CustomerActivityType,
-  CustomerImportResult,
-  CustomerMergeResult,
-  BulkOperationResult,
-  CategoryReorderItem,
-  CategoryUpsertRequest,
-  SavedView,
-  Tag,
-  TicketLink,
-  TicketLinkType,
-  Watcher,
-  Branding,
-  BusinessHoursDay,
-  ChannelToggle,
-  FeatureFlag,
-  Holiday,
   AuditAction,
   AuditLogEntry,
   AuditLogFacets,
-  AgentDashboard,
   AuthResponse,
-  ChangePasswordRequest,
-  CreateUserRequest,
-  UpdateUserRequest,
-  UserAdmin,
+  Branding,
+  BulkOperationResult,
+  BusinessHoursDay,
   CategoryLookup,
+  CategoryReorderItem,
+  CategoryUpsertRequest,
+  ChangePasswordRequest,
+  ChannelToggle,
+  CommunicationChannel,
   CreateTicketRequest,
+  CreateUserRequest,
   CurrentUser,
+  CustomerActivityItem,
+  CustomerActivityType,
   CustomerDetail,
+  CustomerImportResult,
   CustomerListItem,
+  CustomerMergeResult,
   CustomerNote,
+  FeatureFlag,
+  Holiday,
   Interaction,
+  InteractionDirection,
   Lookup,
+  NotificationList,
   PagedResult,
   SaveCustomerRequest,
+  SaveSlaEscalationRuleRequest,
+  SaveSlaPolicyRequest,
+  SavedView,
+  SlaEscalationRule,
+  SlaPolicy,
+  SlaPreview,
+  SlaPreviewRequest,
+  Tag,
   TicketComment,
   TicketDetail,
   TicketHistoryEntry,
+  TicketLink,
+  TicketLinkType,
   TicketListItem,
   TicketPriority,
+  TicketSlaStatus,
   TicketStatus,
   UpdateTicketRequest,
-  CommunicationChannel,
-  InteractionDirection,
+  UpdateUserRequest,
+  UserAdmin,
+  Watcher,
 } from '@/types/api'
 
 export const authApi = {
@@ -534,5 +542,73 @@ export const lookupsApi = {
   async categories(departmentId?: string | null) {
     const { data } = await http.get<CategoryLookup[]>('/lookups/categories', { params: { departmentId } })
     return data
+  },
+}
+
+export const slaApi = {
+  async policies() {
+    const { data } = await http.get<SlaPolicy[]>('/sla/policies')
+    return data
+  },
+  async policy(id: string) {
+    const { data } = await http.get<SlaPolicy>(`/sla/policies/${id}`)
+    return data
+  },
+  async createPolicy(request: SaveSlaPolicyRequest) {
+    const { data } = await http.post<SlaPolicy>('/sla/policies', request)
+    return data
+  },
+  async updatePolicy(id: string, request: SaveSlaPolicyRequest) {
+    const { data } = await http.put<SlaPolicy>(`/sla/policies/${id}`, request)
+    return data
+  },
+  async deletePolicy(id: string) {
+    await http.delete(`/sla/policies/${id}`)
+  },
+
+  async addRule(policyId: string, request: SaveSlaEscalationRuleRequest) {
+    const { data } = await http.post<SlaEscalationRule>(`/sla/policies/${policyId}/rules`, request)
+    return data
+  },
+  async updateRule(policyId: string, ruleId: string, request: SaveSlaEscalationRuleRequest) {
+    const { data } = await http.put<SlaEscalationRule>(`/sla/policies/${policyId}/rules/${ruleId}`, request)
+    return data
+  },
+  async deleteRule(policyId: string, ruleId: string) {
+    await http.delete(`/sla/policies/${policyId}/rules/${ruleId}`)
+  },
+
+  /** Shows what a policy would promise before committing to it — working-hours arithmetic
+   *  is hard to predict by eye. */
+  async preview(request: SlaPreviewRequest) {
+    const { data } = await http.post<SlaPreview>('/sla/policies/preview', request)
+    return data
+  },
+
+  async ticketStatus(ticketId: string) {
+    const { data } = await http.get<TicketSlaStatus>(`/sla/tickets/${ticketId}`)
+    return data
+  },
+  /** One call for a whole page of tickets, so a list does not fire a request per row. */
+  async ticketStatuses(ticketIds: string[]) {
+    const { data } = await http.post<Record<string, TicketSlaStatus>>('/sla/tickets', ticketIds)
+    return data
+  },
+  async evaluate() {
+    const { data } = await http.post<{ escalated: number }>('/sla/evaluate')
+    return data
+  },
+}
+
+export const notificationsApi = {
+  async list(unreadOnly = false, take = 20) {
+    const { data } = await http.get<NotificationList>('/notifications', { params: { unreadOnly, take } })
+    return data
+  },
+  async markRead(id: string) {
+    await http.post(`/notifications/${id}/read`)
+  },
+  async markAllRead() {
+    await http.post('/notifications/read-all')
   },
 }

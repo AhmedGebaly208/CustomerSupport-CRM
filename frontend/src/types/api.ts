@@ -70,6 +70,156 @@ export interface CurrentUser {
 }
 
 /** Mirrors Application/Auth/Permissions.cs. Drives route guards and menu visibility. */
+// ---- SLA and automation (area 5) ----
+
+export enum SlaTargetKind {
+  FirstResponse = 0,
+  Resolution = 1,
+}
+
+export enum SlaState {
+  /** No policy matched, so nothing is being measured. */
+  None = 0,
+  Met = 1,
+  Running = 2,
+  /** Past the warning threshold but still inside the target. */
+  AtRisk = 3,
+  Breached = 4,
+  /** Stopped because the ticket sits in a paused status. */
+  Paused = 5,
+}
+
+export enum AutoAssignmentStrategy {
+  None = 0,
+  LeastBusy = 1,
+  RoundRobin = 2,
+}
+
+export enum NotificationKind {
+  TicketAssigned = 0,
+  TicketEscalated = 1,
+  SlaAtRisk = 2,
+  SlaBreached = 3,
+  TicketCommented = 4,
+  Mention = 5,
+}
+
+export interface SlaTarget {
+  priority: TicketPriority
+  firstResponseMinutes: number
+  resolutionMinutes: number
+}
+
+export interface SlaEscalationRule {
+  id: string
+  nameAr: string
+  nameEn: string
+  isActive: boolean
+  target: SlaTargetKind
+  thresholdPercent: number
+  raiseLevelBy: number
+  reassignToUserId: string | null
+  reassignToName: string | null
+  notifyRole: string | null
+}
+
+export interface SlaPolicy {
+  id: string
+  nameAr: string
+  nameEn: string
+  isActive: boolean
+  rank: number
+  departmentId: string | null
+  departmentNameAr: string | null
+  departmentNameEn: string | null
+  branchId: string | null
+  branchNameAr: string | null
+  branchNameEn: string | null
+  categoryId: string | null
+  categoryNameAr: string | null
+  categoryNameEn: string | null
+  countsBusinessHoursOnly: boolean
+  pausedStatuses: TicketStatus[]
+  assignmentStrategy: AutoAssignmentStrategy
+  targets: SlaTarget[]
+  escalationRules: SlaEscalationRule[]
+}
+
+export interface SaveSlaPolicyRequest {
+  nameAr: string
+  nameEn: string
+  isActive: boolean
+  rank: number
+  departmentId: string | null
+  branchId: string | null
+  categoryId: string | null
+  countsBusinessHoursOnly: boolean
+  pausedStatuses: TicketStatus[]
+  assignmentStrategy: AutoAssignmentStrategy
+  targets: SlaTarget[]
+}
+
+export interface SaveSlaEscalationRuleRequest {
+  nameAr: string
+  nameEn: string
+  isActive: boolean
+  target: SlaTargetKind
+  thresholdPercent: number
+  raiseLevelBy: number
+  reassignToUserId: string | null
+  notifyRole: string | null
+}
+
+export interface SlaClock {
+  kind: SlaTargetKind
+  state: SlaState
+  dueAt: string | null
+  targetMinutes: number | null
+  elapsedMinutes: number | null
+  percentConsumed: number | null
+  /** Negative once the target is missed. */
+  remainingMinutes: number | null
+}
+
+export interface TicketSlaStatus {
+  ticketId: string
+  policyId: string | null
+  policyNameAr: string | null
+  policyNameEn: string | null
+  escalationLevel: number
+  firstResponse: SlaClock
+  resolution: SlaClock
+}
+
+export interface SlaPreviewRequest {
+  policyId: string
+  priority: TicketPriority
+  startAt: string | null
+}
+
+export interface SlaPreview {
+  startAt: string
+  firstResponseDueAt: string
+  resolutionDueAt: string
+  countsBusinessHoursOnly: boolean
+}
+
+/** The event, not its wording — the client renders it in the reader's language. */
+export interface AppNotification {
+  id: string
+  kind: NotificationKind
+  parameters: Record<string, string> | null
+  ticketId: string | null
+  ticketNumber: string | null
+  createdAt: string
+  readAt: string | null
+}
+
+export interface NotificationList {
+  items: AppNotification[]
+  unreadCount: number
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',
@@ -92,6 +242,8 @@ export const PERMISSIONS = {
   ticketsDelete: 'tickets.delete',
   dashboardView: 'dashboard.view',
   dashboardViewTeam: 'dashboard.viewteam',
+  slaView: 'sla.view',
+  slaManage: 'sla.manage',
   lookupsView: 'lookups.view',
   lookupsManage: 'lookups.manage',
   auditLogsView: 'auditlogs.view',

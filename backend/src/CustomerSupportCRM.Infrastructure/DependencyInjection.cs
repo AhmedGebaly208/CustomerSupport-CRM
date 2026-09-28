@@ -1,9 +1,11 @@
 using CustomerSupportCRM.Application.Common.Interfaces;
+using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Infrastructure.Caching;
 using CustomerSupportCRM.Infrastructure.Identity;
 using CustomerSupportCRM.Infrastructure.Import;
 using CustomerSupportCRM.Infrastructure.Persistence;
 using CustomerSupportCRM.Infrastructure.Persistence.Interceptors;
+using CustomerSupportCRM.Infrastructure.Sla;
 using CustomerSupportCRM.Infrastructure.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +67,8 @@ public static class DependencyInjection
         services.AddSingleton<IConfigCache, MemoryConfigCache>();
 
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+
+        services.AddScoped<IBusinessCalendarProvider, BusinessCalendarProvider>();
 
         // Both parsers are registered; the service picks by file extension and content type.
         services.AddScoped<ICustomerImportParser, CsvCustomerImportParser>();

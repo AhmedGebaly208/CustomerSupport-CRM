@@ -42,7 +42,8 @@
     "users": "Users & permissions",
     "auditLogs": "Audit log",
     "settings": "System settings",
-    "categories": "Ticket categories"
+    "categories": "Ticket categories",
+    "sla": "Service levels"
   },
   "auth": {
     "signIn": "Sign in",
@@ -429,5 +430,91 @@
     "customers": {
       "duplicate-email": "Another customer is already registered with that email."
     }
+  },
+  "sla": {
+    "title": "Service levels and automation",
+    "subtitle": "Response and resolution targets, automatic assignment, and escalation rules",
+    "none": "No policies yet",
+    "newPolicy": "New policy",
+    "editPolicy": "Edit policy",
+    "policyName": "Policy",
+    "nameAr": "Arabic name",
+    "nameEn": "English name",
+    "scope": "Scope",
+    "scopeHint": "Leave a field empty to match any value. The most specific policy wins, with rank breaking ties.",
+    "appliesToAll": "All tickets",
+    "anyValue": "Any",
+    "rank": "Rank",
+    "clockType": "Clock",
+    "businessHours": "Business hours",
+    "businessHoursOnly": "Count business hours only",
+    "roundTheClock": "Round the clock",
+    "assignment": "Auto-assignment",
+    "pausedStatuses": "Statuses that pause the clock",
+    "noPause": "Never paused",
+    "targets": "Targets by priority",
+    "firstResponseMinutes": "First response (minutes)",
+    "resolutionMinutes": "Resolution (minutes)",
+    "minutesHint": "Minutes are counted against business hours when that option is on, so a 240-minute target can span more than a day.",
+    "resolutionHint": "A policy is applied when the ticket is raised. Editing it does not move the due dates of existing tickets, because a due date is a promise made at the time.",
+    "rules": "Rules",
+    "rulesFor": "Escalation rules — {name}",
+    "noRules": "No rules",
+    "newRule": "New rule",
+    "editRule": "Edit rule",
+    "ruleName": "Rule",
+    "ruleTarget": "Clock",
+    "threshold": "Fires at",
+    "thresholdHint": "A rule fires at most once per ticket. 100% or more means it fires only on an actual breach.",
+    "raiseLevelBy": "Raise escalation by",
+    "notifyRole": "Notify role",
+    "notifyRoleHint": "Admin or Manager",
+    "preview": "Preview",
+    "previewHint": "Shows what the policy would promise without saving anything — working-hours arithmetic is hard to predict by eye.",
+    "startAt": "Start at",
+    "firstResponseDue": "First response due",
+    "resolutionDue": "Resolution due",
+    "deleteConfirm": "Delete the policy “{name}”?",
+    "noPolicy": "No policy applied",
+    "dueAt": "Due {at}",
+    "consumed": "{percent}% consumed",
+    "remaining": "{time} left",
+    "overdueBy": "{time} overdue",
+    "minutes": "{n} min",
+    "hours": "{n} h",
+    "hoursMinutes": "{h} h {m} m",
+    "state": {
+      "None": "No policy",
+      "Met": "Met",
+      "Running": "Running",
+      "AtRisk": "At risk",
+      "Breached": "Breached",
+      "Paused": "Paused"
+    },
+    "targetKind": {
+      "FirstResponse": "First response",
+      "Resolution": "Resolution"
+    },
+    "strategy": {
+      "None": "None",
+      "LeastBusy": "Least busy",
+      "RoundRobin": "Round robin"
+    },
+    "error": {
+      "nameRequired": "A name is required in both Arabic and English.",
+      "positiveTargets": "Targets must be greater than zero.",
+      "resolutionShorter": "The resolution target for “{priority}” is shorter than its first-response target."
+    }
+  },
+  "notification": {
+    "title": "Notifications",
+    "empty": "Nothing yet",
+    "markAllRead": "Mark all as read",
+    "TicketAssigned": "Ticket {ticketNumber} was assigned to you: {subject}",
+    "TicketEscalated": "Ticket {ticketNumber} was escalated",
+    "SlaAtRisk": "Ticket {ticketNumber} is at risk of breaching ({percent}%) — {ruleName}",
+    "SlaBreached": "Ticket {ticketNumber} breached its SLA ({percent}%) — {ruleName}",
+    "TicketCommented": "New comment on ticket {ticketNumber}",
+    "Mention": "You were mentioned on ticket {ticketNumber}"
   }
 }

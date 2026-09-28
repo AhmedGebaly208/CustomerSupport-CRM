@@ -16,8 +16,9 @@ import InputTextName from 'primevue/inputtext'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import TicketBulkBar from '@/components/TicketBulkBar.vue'
-import { savedViewsApi, ticketsApi } from '@/api/services'
+import { savedViewsApi, slaApi, ticketsApi } from '@/api/services'
 import { problemMessage } from '@/api/client'
+import SlaBadge from '@/components/SlaBadge.vue'
 import { useUiStore } from '@/stores/ui'
 import { useFormat } from '@/composables/useFormat'
 import { useAuthStore } from '@/stores/auth'
@@ -28,6 +29,7 @@ import {
   type SavedView,
   type Tag,
   type TicketListItem,
+  type TicketSlaStatus,
 } from '@/types/api'
 
 const { t } = useI18n()
@@ -72,6 +74,26 @@ const priorityOptions = Object.entries(TicketPriority)
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 
+/** SLA state for the rows currently on screen, keyed by ticket id. Fetched in one call
+ *  after the page loads rather than per row. */
+const slaStatuses = ref<Record<string, TicketSlaStatus>>({})
+
+async function loadSlaStatuses() {
+  const ids = result.value?.items.map((x) => x.id) ?? []
+  if (ids.length === 0) {
+    slaStatuses.value = {}
+    return
+  }
+
+  try {
+    slaStatuses.value = await slaApi.ticketStatuses(ids)
+  } catch {
+    // The list is still usable without badges, so a failure here is silent rather than a
+    // toast on top of the tickets the agent actually came for.
+    slaStatuses.value = {}
+  }
+}
+
 async function load() {
   loading.value = true
   try {
@@ -88,6 +110,7 @@ async function load() {
       tagIds: tagIds.value.length ? tagIds.value : undefined,
       watchedBy: watchedByMe.value ? auth.user?.id : undefined,
     })
+    await loadSlaStatuses()
   } catch (e) {
     toast.add({ severity: 'error', summary: problemMessage(e, t('error.loadFailed')), life: 5000 })
   } finally {
@@ -367,7 +390,13 @@ onMounted(async () => {
 
         <Column :header="t('ticket.resolutionDue')">
           <template #body="{ data }">
+            <SlaBadge
+              v-if="slaStatuses[data.id]"
+              :clock="slaStatuses[data.id].resolution"
+              show-remaining
+            />
             <span
+              v-else
               class="text-sm"
               :class="isOverdue(data.resolutionDueAt) ? 'font-medium text-red-500' : ''"
             >

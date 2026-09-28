@@ -45,6 +45,8 @@ public static class RolePermissions
 
                 Permissions.Dashboard.View, Permissions.Dashboard.ViewTeam,
 
+                Permissions.Sla.View, Permissions.Sla.Manage,
+
                 Permissions.Lookups.View, Permissions.Lookups.Manage,
                 Permissions.AuditLogs.View,
                 Permissions.SystemConfig.View
@@ -63,6 +65,10 @@ public static class RolePermissions
                 Permissions.Tickets.ViewInternal, Permissions.Tickets.Close,
 
                 Permissions.Dashboard.View,
+
+                // Agents read the targets they are measured against but do not set them.
+                Permissions.Sla.View,
+
                 Permissions.Lookups.View
             ],
 

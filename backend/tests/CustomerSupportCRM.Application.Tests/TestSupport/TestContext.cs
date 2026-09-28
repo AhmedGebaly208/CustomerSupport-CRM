@@ -1,6 +1,7 @@
 using CustomerSupportCRM.Application.Customers;
 using CustomerSupportCRM.Application.Customers.Validators;
 using CustomerSupportCRM.Infrastructure.Import;
+using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.Tickets;
 using CustomerSupportCRM.Domain.Entities;
 using CustomerSupportCRM.Infrastructure.Persistence;
@@ -34,7 +35,13 @@ public sealed class TestHarness : IDisposable
 
         Db = new AppDbContext(options);
 
-        Tickets = new TicketService(Db, CurrentUser, Clock, Numbers, Identity, Scope);
+        Calendars = new FakeBusinessCalendarProvider();
+        Sla = new SlaService(Db, Calendars, Clock);
+        Notifications = new NotificationService(Db, CurrentUser, Clock);
+
+        Tickets = new TicketService(
+            Db, CurrentUser, Clock, Numbers, Identity, Scope,
+            Sla, new AutoAssignmentService(Db, Identity), Notifications);
         Customers = new CustomerService(
             Db, CurrentUser, Clock, Numbers, Identity, Scope,
             Storage, Transactions, [new CsvCustomerImportParser()],
@@ -47,6 +54,9 @@ public sealed class TestHarness : IDisposable
     public FakeIdentityService Identity { get; }
     public FakeReferenceNumberGenerator Numbers { get; }
     public FakeScopeProvider Scope { get; }
+    public FakeBusinessCalendarProvider Calendars { get; }
+    public ISlaService Sla { get; }
+    public INotificationService Notifications { get; }
     public FakeFileStorage Storage { get; }
     public FakeTransactionRunner Transactions { get; }
 

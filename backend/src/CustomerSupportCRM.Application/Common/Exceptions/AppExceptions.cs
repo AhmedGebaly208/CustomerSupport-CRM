@@ -63,6 +63,9 @@ public static class ErrorCodes
     // Customers.
     public const string DuplicateCustomerEmail = "customers.duplicate-email";
 
+    // SLA.
+    public const string SlaPolicyInUse = "sla.policy-in-use";
+
     // Surfaced by the middleware rather than by a call site.
     public const string ValidationFailed = "validation-failed";
     public const string Unexpected = "unexpected";

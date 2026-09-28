@@ -42,7 +42,8 @@
     "users": "المستخدمون والصلاحيات",
     "auditLogs": "سجل التدقيق",
     "settings": "إعدادات النظام",
-    "categories": "تصنيفات التذاكر"
+    "categories": "تصنيفات التذاكر",
+    "sla": "مستويات الخدمة"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -429,5 +430,91 @@
     "customers": {
       "duplicate-email": "يوجد عميل آخر مسجّل بنفس البريد الإلكتروني."
     }
+  },
+  "sla": {
+    "title": "مستويات الخدمة والأتمتة",
+    "subtitle": "أهداف الاستجابة والحل، والإسناد التلقائي، وقواعد التصعيد",
+    "none": "لا توجد سياسات بعد",
+    "newPolicy": "سياسة جديدة",
+    "editPolicy": "تعديل السياسة",
+    "policyName": "السياسة",
+    "nameAr": "الاسم بالعربية",
+    "nameEn": "الاسم بالإنجليزية",
+    "scope": "النطاق",
+    "scopeHint": "اترك الحقل فارغًا ليطابق أي قيمة. السياسة الأكثر تحديدًا هي التي تُطبَّق، وتُرجَّح الأولوية عند التساوي.",
+    "appliesToAll": "كل التذاكر",
+    "anyValue": "أي قيمة",
+    "rank": "الأولوية",
+    "clockType": "احتساب الوقت",
+    "businessHours": "ساعات العمل",
+    "businessHoursOnly": "احتساب ساعات العمل فقط",
+    "roundTheClock": "على مدار الساعة",
+    "assignment": "الإسناد التلقائي",
+    "pausedStatuses": "حالات إيقاف العداد",
+    "noPause": "بدون إيقاف",
+    "targets": "الأهداف حسب الأولوية",
+    "firstResponseMinutes": "الاستجابة الأولى (دقائق)",
+    "resolutionMinutes": "الحل (دقائق)",
+    "minutesHint": "الدقائق تُحتسب ضمن ساعات العمل عند تفعيل الخيار، فهدف ٢٤٠ دقيقة قد يمتد لأكثر من يوم.",
+    "resolutionHint": "تُطبَّق السياسة على التذكرة وقت إنشائها. تعديل السياسة لا يغيّر مواعيد التذاكر القائمة، لأن الموعد وعد قُطِع في حينه.",
+    "rules": "القواعد",
+    "rulesFor": "قواعد التصعيد — {name}",
+    "noRules": "لا توجد قواعد",
+    "newRule": "قاعدة جديدة",
+    "editRule": "تعديل القاعدة",
+    "ruleName": "القاعدة",
+    "ruleTarget": "العدّاد",
+    "threshold": "نسبة التفعيل",
+    "thresholdHint": "تُفعَّل القاعدة مرة واحدة فقط لكل تذكرة. نسبة ١٠٠٪ أو أكثر تعني التفعيل عند التجاوز الفعلي.",
+    "raiseLevelBy": "رفع مستوى التصعيد",
+    "notifyRole": "إشعار الدور",
+    "notifyRoleHint": "Admin أو Manager",
+    "preview": "معاينة",
+    "previewHint": "يوضّح الموعد الذي ستلتزم به السياسة دون حفظ أي شيء — حساب ساعات العمل يصعب تقديره بالنظر.",
+    "startAt": "وقت البدء",
+    "firstResponseDue": "موعد الاستجابة الأولى",
+    "resolutionDue": "موعد الحل",
+    "deleteConfirm": "هل تريد حذف السياسة «{name}»؟",
+    "noPolicy": "لا توجد سياسة مطبَّقة",
+    "dueAt": "الموعد: {at}",
+    "consumed": "المستهلك: {percent}٪",
+    "remaining": "يتبقى {time}",
+    "overdueBy": "متأخر {time}",
+    "minutes": "{n} دقيقة",
+    "hours": "{n} ساعة",
+    "hoursMinutes": "{h} س {m} د",
+    "state": {
+      "None": "غير مطبَّق",
+      "Met": "تم الالتزام",
+      "Running": "جارٍ",
+      "AtRisk": "قارب التجاوز",
+      "Breached": "تم التجاوز",
+      "Paused": "متوقف"
+    },
+    "targetKind": {
+      "FirstResponse": "الاستجابة الأولى",
+      "Resolution": "الحل"
+    },
+    "strategy": {
+      "None": "بدون",
+      "LeastBusy": "الأقل انشغالًا",
+      "RoundRobin": "بالتناوب"
+    },
+    "error": {
+      "nameRequired": "الاسم مطلوب بالعربية والإنجليزية.",
+      "positiveTargets": "يجب أن تكون الأهداف أكبر من صفر.",
+      "resolutionShorter": "هدف الحل لأولوية «{priority}» أقصر من هدف الاستجابة الأولى."
+    }
+  },
+  "notification": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "markAllRead": "تعليم الكل كمقروء",
+    "TicketAssigned": "أُسندت إليك التذكرة {ticketNumber}: {subject}",
+    "TicketEscalated": "تم تصعيد التذكرة {ticketNumber}",
+    "SlaAtRisk": "التذكرة {ticketNumber} قاربت تجاوز مستوى الخدمة ({percent}٪) — {ruleName}",
+    "SlaBreached": "التذكرة {ticketNumber} تجاوزت مستوى الخدمة ({percent}٪) — {ruleName}",
+    "TicketCommented": "تعليق جديد على التذكرة {ticketNumber}",
+    "Mention": "تمت الإشارة إليك في التذكرة {ticketNumber}"
   }
 }
