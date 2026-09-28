@@ -76,6 +76,12 @@ public static class ErrorCodes
     // Reporting.
     public const string TicketNotResolved = "reports.ticket-not-resolved";
 
+    // Customer portal.
+    public const string PortalNotLinked = "portal.not-linked";
+    public const string PortalUserAlreadyLinked = "portal.user-already-linked";
+    public const string PortalTooManyOpenTickets = "portal.too-many-open";
+    public const string PortalCannotClose = "portal.cannot-close";
+
     // Surfaced by the middleware rather than by a call site.
     public const string ValidationFailed = "validation-failed";
     public const string Unexpected = "unexpected";

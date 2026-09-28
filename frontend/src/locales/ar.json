@@ -448,6 +448,11 @@
     },
     "ai": {
       "rate-limited": "تم استخدام المساعدة كثيرًا خلال فترة قصيرة. حاول بعد قليل."
+    },
+    "portal": {
+      "not-linked": "هذا الحساب غير مرتبط بسجل عميل. تواصل مع الدعم.",
+      "too-many-open": "لديك بالفعل الحد الأقصى من الطلبات المفتوحة. برجاء الرد على طلب قائم.",
+      "cannot-close": "لا يمكن إغلاق هذا الطلب في حالته الحالية."
     }
   },
   "sla": {
@@ -699,5 +704,47 @@
     "distribution": "توزيع التقييمات",
     "minutes": "دقيقة",
     "creditNote": "التذكرة التي تنتقل بين الوكلاء تُحتسب لكل من تعامل معها، بينما يُنسب الحل لمن أنهاها."
+  },
+  "portal": {
+    "myRequests": "طلباتي",
+    "requestsSubtitle": "تابع طلباتك وردود فريق الدعم",
+    "newRequest": "طلب جديد",
+    "newRequestHint": "صف مشكلتك وسنعود إليك في أقرب وقت.",
+    "noRequests": "لا توجد طلبات بعد",
+    "openOnly": "المفتوحة فقط",
+    "lastActivity": "آخر تحديث",
+    "backToRequests": "رجوع إلى الطلبات",
+    "subject": "الموضوع",
+    "subjectPlaceholder": "اكتب عنوانًا مختصرًا",
+    "description": "التفاصيل",
+    "descriptionPlaceholder": "اشرح ما حدث وما جرّبته",
+    "category": "التصنيف",
+    "anyCategory": "غير محدد",
+    "priority": "الأهمية",
+    "submit": "إرسال الطلب",
+    "requestCreated": "تم إنشاء طلبك",
+    "you": "أنت",
+    "support": "فريق الدعم",
+    "attachments": "المرفقات",
+    "send": "إرسال",
+    "replyPlaceholder": "اكتب ردك هنا…",
+    "replyReopens": "هذا الطلب مُغلق. الرد عليه سيعيد فتحه.",
+    "close": "إغلاق الطلب",
+    "closeConfirm": "هل تريد إغلاق هذا الطلب؟",
+    "howDidWeDo": "كيف كانت تجربتك؟",
+    "yourRating": "تقييمك",
+    "thanksForFeedback": "شكرًا لتقييمك",
+    "help": "المساعدة",
+    "helpSubtitle": "أسئلة شائعة وأدلة قد تحل مشكلتك فورًا",
+    "searchHelp": "ابحث في المساعدة…",
+    "noArticles": "لا توجد مقالات مطابقة",
+    "askQuestion": "اسأل سؤالًا",
+    "askPlaceholder": "مثال: كم مدة صلاحية رابط إعادة التعيين؟",
+    "askEscalate": "لم أجد إجابة موثّقة. أنشئ طلبًا وسيتابع معك فريق الدعم.",
+    "source": "المصدر",
+    "error": {
+      "subjectRequired": "الموضوع مطلوب.",
+      "descriptionRequired": "التفاصيل مطلوبة."
+    }
   }
 }

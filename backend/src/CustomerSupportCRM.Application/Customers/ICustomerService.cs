@@ -10,6 +10,12 @@ public interface ICustomerService
     Task<CustomerDetailDto> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<CustomerDetailDto> CreateAsync(CreateCustomerRequest request, CancellationToken ct = default);
     Task<CustomerDetailDto> UpdateAsync(Guid id, UpdateCustomerRequest request, CancellationToken ct = default);
+    /// <summary>Grants or revokes a customer's access to the portal by linking a login to
+    /// their record. A deliberate, audited action of its own rather than a field on the edit
+    /// form, because it changes who can see the record rather than what it says.</summary>
+    Task<CustomerDetailDto> SetPortalUserAsync(
+        Guid id, Guid? userId, CancellationToken ct = default);
+
     Task DeleteAsync(Guid id, CancellationToken ct = default);
 
     Task<IReadOnlyList<CustomerNoteDto>> GetNotesAsync(Guid customerId, CancellationToken ct = default);

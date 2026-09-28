@@ -3,8 +3,14 @@ import type {
   AgentReport,
   AiFeature,
   AiSuggestionOutcome,
+  CreatePortalTicketRequest,
   CsatReport,
   ExportFormat,
+  PortalAttachment,
+  PortalMessage,
+  PortalProfile,
+  PortalTicket,
+  PortalTicketListItem,
   ReportKind,
   ReportQuery,
   SlaReport,
@@ -850,6 +856,58 @@ export const reportsApi = {
       score,
       comment: comment ?? null,
     })
+    return data
+  },
+}
+
+/**
+ * The customer portal. No call here takes a customer id — the server resolves it from the
+ * signed-in user, which is what makes one customer unable to address another's data.
+ */
+export const portalApi = {
+  async profile() {
+    const { data } = await http.get<PortalProfile>('/portal/me')
+    return data
+  },
+  async tickets(openOnly = false, page = 1, pageSize = 20) {
+    const { data } = await http.get<PagedResult<PortalTicketListItem>>('/portal/tickets', {
+      params: { openOnly, page, pageSize },
+    })
+    return data
+  },
+  async ticket(id: string) {
+    const { data } = await http.get<PortalTicket>(`/portal/tickets/${id}`)
+    return data
+  },
+  async messages(id: string) {
+    const { data } = await http.get<PortalMessage[]>(`/portal/tickets/${id}/messages`)
+    return data
+  },
+  async attachments(id: string) {
+    const { data } = await http.get<PortalAttachment[]>(`/portal/tickets/${id}/attachments`)
+    return data
+  },
+  async create(request: CreatePortalTicketRequest) {
+    const { data } = await http.post<PortalTicket>('/portal/tickets', request)
+    return data
+  },
+  async reply(id: string, body: string) {
+    const { data } = await http.post<PortalMessage>(`/portal/tickets/${id}/replies`, { body })
+    return data
+  },
+  async close(id: string) {
+    const { data } = await http.post<PortalTicket>(`/portal/tickets/${id}/close`)
+    return data
+  },
+  async rate(id: string, score: number, comment?: string) {
+    const { data } = await http.post(`/portal/tickets/${id}/satisfaction`, {
+      score,
+      comment: comment ?? null,
+    })
+    return data
+  },
+  async articles(search?: string) {
+    const { data } = await http.get<ArticleSearchResult>('/portal/articles', { params: { search } })
     return data
   },
 }

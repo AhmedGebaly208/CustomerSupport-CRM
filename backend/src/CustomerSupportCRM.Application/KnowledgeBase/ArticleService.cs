@@ -426,11 +426,20 @@ public sealed class ArticleService(
     /// read passes publicOnly and gets only published, public articles.</summary>
     private IQueryable<Article> Readable(bool publicOnly)
     {
-        var q = scope.Apply(db.Articles.AsNoTracking());
+        if (publicOnly)
+        {
+            // Department scoping is deliberately not applied here. A published, public
+            // article is customer-facing help, not a department's private material, and the
+            // reader is typically a portal customer with no department at all — scope fails
+            // closed for them, which would hide every article and leave the help page empty.
+            // The Published and IsPublic pair is the whole access rule for this path.
+            return db.Articles.AsNoTracking()
+                .Where(a => a.Status == ArticleStatus.Published && a.IsPublic);
+        }
 
-        return publicOnly
-            ? q.Where(a => a.Status == ArticleStatus.Published && a.IsPublic)
-            : q;
+        // Staff reads stay scoped: drafts and internal articles belong to the department
+        // that wrote them.
+        return scope.Apply(db.Articles.AsNoTracking());
     }
 
     private async Task EnsureReadableAsync(Guid id, CancellationToken ct)

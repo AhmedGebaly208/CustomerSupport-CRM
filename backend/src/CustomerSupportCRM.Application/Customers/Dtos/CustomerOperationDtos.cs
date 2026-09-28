@@ -94,3 +94,6 @@ public sealed class CustomerActivityQuery : PagedQuery
     /// <summary>Restricts the feed to certain sources. Empty means all four.</summary>
     public CustomerActivityType[]? Types { get; set; }
 }
+
+/// <summary>Null unlinks, which is how portal access is revoked.</summary>
+public sealed record SetPortalUserRequest(Guid? UserId);

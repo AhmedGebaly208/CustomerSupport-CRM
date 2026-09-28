@@ -654,6 +654,71 @@ export interface CsatReport {
   distribution: DimensionBucket[]
 }
 
+// ---- Customer portal (area 9) ----
+
+/** What a customer sees of their own ticket. A separate shape from the staff DTO on purpose:
+ *  it has no property for an agent, a department, an escalation level or an SLA date, so
+ *  those cannot leak into the portal even by mistake. */
+export interface PortalTicket {
+  id: string
+  number: string
+  subject: string
+  description: string
+  status: TicketStatus
+  priority: TicketPriority
+  channel: CommunicationChannel
+  categoryNameAr: string | null
+  categoryNameEn: string | null
+  createdAt: string
+  resolvedAt: string | null
+  closedAt: string | null
+  canReply: boolean
+  canRate: boolean
+  satisfactionScore: number | null
+}
+
+export interface PortalTicketListItem {
+  id: string
+  number: string
+  subject: string
+  status: TicketStatus
+  priority: TicketPriority
+  createdAt: string
+  lastActivityAt: string | null
+}
+
+export interface PortalMessage {
+  id: string
+  body: string
+  fromSupport: boolean
+  createdAt: string
+}
+
+export interface PortalAttachment {
+  id: string
+  fileName: string
+  contentType: string
+  sizeBytes: number
+  createdAt: string
+}
+
+export interface CreatePortalTicketRequest {
+  subject: string
+  description: string
+  priority: TicketPriority
+  categoryId: string | null
+}
+
+export interface PortalProfile {
+  customerId: string
+  code: string
+  fullNameAr: string
+  fullNameEn: string
+  email: string | null
+  phone: string | null
+  preferredLanguage: string
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',
@@ -679,6 +744,9 @@ export const PERMISSIONS = {
   kbView: 'kb.view',
   kbManage: 'kb.manage',
   kbPublish: 'kb.publish',
+  portalAccess: 'portal.access',
+  portalCreateTicket: 'portal.ticket.create',
+  portalReply: 'portal.ticket.reply',
   reportsView: 'reports.view',
   reportsExport: 'reports.export',
   slaView: 'sla.view',

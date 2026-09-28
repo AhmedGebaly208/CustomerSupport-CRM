@@ -83,19 +83,21 @@ public static class RolePermissions
 
             // Portal customers: read and reply on their own tickets only. The portal story
             // scopes the data; this set keeps internal notes out of reach regardless.
+            // Portal customers hold portal permissions and nothing from the staff set.
+            // They previously carried tickets.view and tickets.comment, which meant only the
+            // fail-closed scope check stood between a customer and the desk's queue; a
+            // customer given a department claim by mistake would have seen that whole
+            // department. Holding no staff permission at all, a staff endpoint now refuses
+            // them regardless of scope.
             [Roles.Customer] =
             [
-                Permissions.Tickets.View,
-                Permissions.Tickets.Create,
-                Permissions.Tickets.Comment,
+                Permissions.Portal.Access,
+                Permissions.Portal.CreateTicket,
+                Permissions.Portal.Reply,
 
-                // Portal self-service. The service filters to published, public articles.
-                Permissions.KnowledgeBase.View,
-
-                // A portal customer sees files on their own tickets; the portal story
-                // scopes which tickets those are.
-                Permissions.Attachments.View,
-                Permissions.Attachments.Upload
+                // Self-service reading. The article service filters to published, public
+                // articles, so this never exposes an internal runbook.
+                Permissions.KnowledgeBase.View
             ]
         };
 

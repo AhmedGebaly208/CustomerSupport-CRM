@@ -11,6 +11,39 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true, layout: 'auth' },
   },
   {
+    path: '/portal',
+    component: () => import('@/layouts/PortalLayout.vue'),
+    meta: { portal: true },
+    children: [
+      { path: '', redirect: { name: 'portal-tickets' } },
+      {
+        path: 'requests',
+        name: 'portal-tickets',
+        component: () => import('@/views/portal/PortalTicketsView.vue'),
+        meta: { permission: PERMISSIONS.portalAccess, portal: true },
+      },
+      {
+        path: 'requests/new',
+        name: 'portal-new-ticket',
+        component: () => import('@/views/portal/PortalNewTicketView.vue'),
+        meta: { permission: PERMISSIONS.portalCreateTicket, portal: true },
+      },
+      {
+        path: 'requests/:id',
+        name: 'portal-ticket',
+        component: () => import('@/views/portal/PortalTicketDetailView.vue'),
+        props: true,
+        meta: { permission: PERMISSIONS.portalAccess, portal: true },
+      },
+      {
+        path: 'help',
+        name: 'portal-help',
+        component: () => import('@/views/portal/PortalHelpView.vue'),
+        meta: { permission: PERMISSIONS.portalAccess, portal: true },
+      },
+    ],
+  },
+  {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
     children: [
@@ -185,11 +218,21 @@ router.beforeEach(async (to) => {
     return { name: 'dashboard' }
   }
 
-  // Every route in this bootstrap is a staff-facing screen; the customer portal
-  // (PDF area 8) will get its own route tree and layout.
-  if (!auth.isStaff && !auth.hasRole(ROLES.customer)) {
+  // Staff and customers have separate route trees. A customer landing on a staff URL is
+  // sent to the portal rather than shown an empty screen, and a staff member on a portal URL
+  // is sent back — the portal resolves its customer from the signed-in user, so a staff
+  // account has nothing to show there.
+  const isPortalRoute = to.meta.portal === true
+
+  if (auth.hasRole(ROLES.customer) && !auth.isStaff) {
+    return isPortalRoute ? true : { name: 'portal-tickets' }
+  }
+
+  if (!auth.isStaff) {
     return { name: 'login' }
   }
+
+  if (isPortalRoute) return { name: 'dashboard' }
 
   return true
 })

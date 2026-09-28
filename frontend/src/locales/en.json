@@ -448,6 +448,11 @@
     },
     "ai": {
       "rate-limited": "Assistance has been used a lot in a short period. Try again shortly."
+    },
+    "portal": {
+      "not-linked": "This account is not linked to a customer record. Please contact support.",
+      "too-many-open": "You already have the maximum number of open requests. Please reply on an existing one.",
+      "cannot-close": "This request cannot be closed in its current state."
     }
   },
   "sla": {
@@ -699,5 +704,47 @@
     "distribution": "Score distribution",
     "minutes": "min",
     "creditNote": "A ticket that changes hands counts for every agent who handled it; the resolution is credited to whoever finished it."
+  },
+  "portal": {
+    "myRequests": "My requests",
+    "requestsSubtitle": "Track your requests and replies from support",
+    "newRequest": "New request",
+    "newRequestHint": "Describe the problem and we will get back to you.",
+    "noRequests": "No requests yet",
+    "openOnly": "Open only",
+    "lastActivity": "Last activity",
+    "backToRequests": "Back to requests",
+    "subject": "Subject",
+    "subjectPlaceholder": "A short summary",
+    "description": "Details",
+    "descriptionPlaceholder": "What happened, and what you have tried",
+    "category": "Category",
+    "anyCategory": "Not sure",
+    "priority": "Importance",
+    "submit": "Send request",
+    "requestCreated": "Your request was created",
+    "you": "You",
+    "support": "Support",
+    "attachments": "Attachments",
+    "send": "Send",
+    "replyPlaceholder": "Write your reply…",
+    "replyReopens": "This request is closed. Replying will reopen it.",
+    "close": "Close request",
+    "closeConfirm": "Close this request?",
+    "howDidWeDo": "How did we do?",
+    "yourRating": "Your rating",
+    "thanksForFeedback": "Thanks for the feedback",
+    "help": "Help",
+    "helpSubtitle": "FAQs and guides that may solve it right away",
+    "searchHelp": "Search help…",
+    "noArticles": "Nothing matched",
+    "askQuestion": "Ask a question",
+    "askPlaceholder": "For example: how long is the reset link valid?",
+    "askEscalate": "I could not find a documented answer. Raise a request and support will follow up.",
+    "source": "Source",
+    "error": {
+      "subjectRequired": "A subject is required.",
+      "descriptionRequired": "Details are required."
+    }
   }
 }

@@ -88,6 +88,19 @@ public static class Permissions
         public const string Export = "reports.export";
     }
 
+    /// <summary>The customer portal (PDF area 9).
+    ///
+    /// Deliberately separate from the staff ticket permissions rather than reusing them. A
+    /// portal customer holding tickets.view would be one misconfigured department claim away
+    /// from reading the desk's queue; holding only portal.* they cannot reach a staff
+    /// endpoint at all, whatever their scope says.</summary>
+    public static class Portal
+    {
+        public const string Access = "portal.access";
+        public const string CreateTicket = "portal.ticket.create";
+        public const string Reply = "portal.ticket.reply";
+    }
+
     public static class Lookups
     {
         public const string View = "lookups.view";
@@ -119,6 +132,7 @@ public static class Permissions
         Dashboard.View, Dashboard.ViewTeam,
         Sla.View, Sla.Manage,
         Reports.View, Reports.Export,
+        Portal.Access, Portal.CreateTicket, Portal.Reply,
         KnowledgeBase.View, KnowledgeBase.Manage, KnowledgeBase.Publish,
         Lookups.View, Lookups.Manage,
         AuditLogs.View,

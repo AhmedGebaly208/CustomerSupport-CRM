@@ -202,6 +202,35 @@ public sealed partial class CustomerService : ICustomerService
         return await GetByIdAsync(customer.Id, ct);
     }
 
+    public async Task<CustomerDetailDto> SetPortalUserAsync(
+        Guid id, Guid? userId, CancellationToken ct = default)
+    {
+        var customer = await db.Customers.FirstOrDefaultAsync(c => c.Id == id, ct)
+            ?? throw new NotFoundException(nameof(Customer), id);
+
+        scope.EnsureCanAccess(customer);
+
+        if (userId is { } linkTo)
+        {
+            // One login, one customer. Without this a shared account would see two people's
+            // tickets, which is the exact failure the portal exists to prevent.
+            var taken = await db.Customers
+                .AnyAsync(c => c.UserId == linkTo && c.Id != id, ct);
+
+            if (taken)
+            {
+                throw new ConflictException(
+                    "That login is already linked to another customer.",
+                    ErrorCodes.PortalUserAlreadyLinked);
+            }
+        }
+
+        customer.UserId = userId;
+        await db.SaveChangesAsync(ct);
+
+        return await GetByIdAsync(id, ct);
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
         var customer = await db.Customers.FirstOrDefaultAsync(c => c.Id == id, ct)

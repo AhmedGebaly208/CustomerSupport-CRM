@@ -49,6 +49,15 @@ public sealed class CustomersController(ICustomerService customers) : Controller
         Ok(await customers.UpdateAsync(id, request, ct));
 
     /// <summary>Soft-deletes the customer. Refused while they still have active tickets.</summary>
+    /// <summary>Links or unlinks the portal login for this customer. Gated on user
+    /// management rather than customer editing: it grants access, so it belongs with the
+    /// permission that governs accounts.</summary>
+    [HttpPost("{id:guid}/portal-user")]
+    [Authorize(Permissions.Users.Manage)]
+    public async Task<ActionResult<CustomerDetailDto>> SetPortalUser(
+        Guid id, [FromBody] SetPortalUserRequest request, CancellationToken ct) =>
+        Ok(await customers.SetPortalUserAsync(id, request.UserId, ct));
+
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = Permissions.Customers.Delete)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
