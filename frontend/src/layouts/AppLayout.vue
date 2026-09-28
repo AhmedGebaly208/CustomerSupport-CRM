@@ -28,6 +28,10 @@ const navItems = computed(() => {
 
   // Hidden when the permission is absent. Usability only — the route guard and the API
   // enforce the same permission independently.
+  if (auth.hasPermission(PERMISSIONS.reportsView)) {
+    items.push({ label: t('nav.reports'), icon: 'pi pi-chart-line', to: { name: 'reports' } })
+  }
+
   if (auth.hasPermission(PERMISSIONS.kbView)) {
     items.push({ label: t('nav.kb'), icon: 'pi pi-book', to: { name: 'kb' } })
   }

@@ -552,6 +552,108 @@ export interface ChatAnswer {
   shouldEscalate: boolean
 }
 
+// ---- Reports (area 8) ----
+
+export enum ReportGranularity {
+  Day = 0,
+  Week = 1,
+  Month = 2,
+}
+
+export enum ReportKind {
+  Tickets = 0,
+  Sla = 1,
+  Agents = 2,
+  Csat = 3,
+}
+
+export enum ExportFormat {
+  Xlsx = 0,
+  Csv = 1,
+}
+
+export interface ReportQuery {
+  from: string
+  to: string
+  granularity?: ReportGranularity
+  departmentId?: string | null
+  branchId?: string | null
+  categoryId?: string | null
+  priority?: TicketPriority | null
+  status?: TicketStatus | null
+  channel?: CommunicationChannel | null
+  agentId?: string | null
+}
+
+export interface TimeBucket {
+  start: string
+  count: number
+}
+
+export interface DimensionBucket {
+  key: string
+  labelAr: string
+  labelEn: string
+  count: number
+}
+
+export interface TicketReport {
+  total: number
+  previousTotal: number
+  trend: TimeBucket[]
+  previousTrend: TimeBucket[]
+  byStatus: DimensionBucket[]
+  byPriority: DimensionBucket[]
+  byChannel: DimensionBucket[]
+  byCategory: DimensionBucket[]
+  byDepartment: DimensionBucket[]
+}
+
+/** Every ratio is nullable. Null means there was nothing to measure, which the UI renders
+ *  as a dash rather than as zero. */
+export interface SlaReport {
+  measured: number
+  firstResponseMet: number
+  firstResponseBreached: number
+  firstResponseAttainment: number | null
+  resolutionMet: number
+  resolutionBreached: number
+  resolutionAttainment: number | null
+  averageFirstResponseMinutes: number | null
+  medianFirstResponseMinutes: number | null
+  averageResolutionMinutes: number | null
+  medianResolutionMinutes: number | null
+  breachTrend: TimeBucket[]
+  breachesByDepartment: DimensionBucket[]
+}
+
+export interface AgentRow {
+  agentId: string
+  nameAr: string
+  nameEn: string
+  handled: number
+  resolved: number
+  reopened: number
+  reopenRate: number | null
+  averageFirstResponseMinutes: number | null
+  averageResolutionMinutes: number | null
+  averageSatisfaction: number | null
+  currentLoad: number
+}
+
+export interface AgentReport {
+  rows: AgentRow[]
+}
+
+export interface CsatReport {
+  averageScore: number | null
+  responses: number
+  eligibleTickets: number
+  responseRate: number | null
+  trend: TimeBucket[]
+  distribution: DimensionBucket[]
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',
@@ -577,6 +679,8 @@ export const PERMISSIONS = {
   kbView: 'kb.view',
   kbManage: 'kb.manage',
   kbPublish: 'kb.publish',
+  reportsView: 'reports.view',
+  reportsExport: 'reports.export',
   slaView: 'sla.view',
   slaManage: 'sla.manage',
   lookupsView: 'lookups.view',

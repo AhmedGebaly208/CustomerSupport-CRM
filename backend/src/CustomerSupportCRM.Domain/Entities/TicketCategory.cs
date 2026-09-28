@@ -4,7 +4,7 @@ namespace CustomerSupportCRM.Domain.Entities;
 
 /// <summary>Ticket category tree (area 2). Self-referencing so departments can nest
 /// sub-categories without a schema change.</summary>
-public class TicketCategory : AuditableEntity
+public class TicketCategory : AuditableEntity, INamedLookup
 {
     public string NameAr { get; set; } = string.Empty;
     public string NameEn { get; set; } = string.Empty;

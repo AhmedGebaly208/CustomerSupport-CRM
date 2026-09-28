@@ -73,6 +73,9 @@ public static class ErrorCodes
     // Assistance.
     public const string AiRateLimited = "ai.rate-limited";
 
+    // Reporting.
+    public const string TicketNotResolved = "reports.ticket-not-resolved";
+
     // Surfaced by the middleware rather than by a call site.
     public const string ValidationFailed = "validation-failed";
     public const string Unexpected = "unexpected";

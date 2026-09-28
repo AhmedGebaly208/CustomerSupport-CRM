@@ -3,7 +3,7 @@ using CustomerSupportCRM.Domain.Common;
 namespace CustomerSupportCRM.Domain.Entities;
 
 /// <summary>Multi-branch support (area 12).</summary>
-public class Branch : AuditableEntity
+public class Branch : AuditableEntity, INamedLookup
 {
     public string Code { get; set; } = string.Empty;
     public string NameAr { get; set; } = string.Empty;

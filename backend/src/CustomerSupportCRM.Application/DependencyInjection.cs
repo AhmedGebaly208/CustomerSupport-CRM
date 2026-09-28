@@ -6,6 +6,7 @@ using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Customers;
 using CustomerSupportCRM.Application.KnowledgeBase;
 using CustomerSupportCRM.Application.Lookups;
+using CustomerSupportCRM.Application.Reports;
 using CustomerSupportCRM.Application.SavedViews;
 using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.SystemConfig;
@@ -38,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IOutboundDispatcher, OutboundDispatcher>();
         services.AddScoped<IChannelMessageQuery, ChannelMessageQuery>();
         services.AddScoped<IAssistanceService, AssistanceService>();
+        services.AddScoped<IReportsService, ReportsService>();
 
         services.AddScoped<IArticleService, ArticleService>();
         services.AddScoped<IArticleCategoryService, ArticleCategoryService>();

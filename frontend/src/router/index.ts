@@ -73,6 +73,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: PERMISSIONS.lookupsManage },
       },
       {
+        path: 'reports',
+        name: 'reports',
+        component: () => import('@/views/reports/ReportsView.vue'),
+        meta: { permission: PERMISSIONS.dashboardView },
+      },
+      {
         path: 'kb',
         name: 'kb',
         component: () => import('@/views/kb/KnowledgeBaseView.vue'),

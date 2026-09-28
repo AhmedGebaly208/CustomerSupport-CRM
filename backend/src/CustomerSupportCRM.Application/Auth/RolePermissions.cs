@@ -47,6 +47,8 @@ public static class RolePermissions
 
                 Permissions.Sla.View, Permissions.Sla.Manage,
 
+                Permissions.Reports.View, Permissions.Reports.Export,
+
                 Permissions.KnowledgeBase.View, Permissions.KnowledgeBase.Manage,
                 Permissions.KnowledgeBase.Publish,
 

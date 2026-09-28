@@ -26,4 +26,10 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Export column headings live in data so a translator can edit them without touching
+         the export code. -->
+    <EmbeddedResource Include="Reports/report-labels.json" />
+  </ItemGroup>
+
 </Project>

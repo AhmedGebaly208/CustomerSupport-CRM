@@ -1,5 +1,15 @@
 import { http } from './client'
-import type { AiFeature, AiSuggestionOutcome } from '@/types/api'
+import type {
+  AgentReport,
+  AiFeature,
+  AiSuggestionOutcome,
+  CsatReport,
+  ExportFormat,
+  ReportKind,
+  ReportQuery,
+  SlaReport,
+  TicketReport,
+} from '@/types/api'
 import type {
   Agent,
   AgentDashboard,
@@ -806,5 +816,40 @@ export const aiApi = {
   /** Records what the agent did with a suggestion, which is how its value is measured. */
   async feedback(feature: AiFeature, outcome: AiSuggestionOutcome, ticketId?: string) {
     await http.post('/ai/feedback', { feature, outcome, ticketId: ticketId ?? null })
+  },
+}
+
+export const reportsApi = {
+  async tickets(query: ReportQuery) {
+    const { data } = await http.post<TicketReport>('/reports/tickets', query)
+    return data
+  },
+  async sla(query: ReportQuery) {
+    const { data } = await http.post<SlaReport>('/reports/sla', query)
+    return data
+  },
+  async agents(query: ReportQuery) {
+    const { data } = await http.post<AgentReport>('/reports/agents', query)
+    return data
+  },
+  async csat(query: ReportQuery) {
+    const { data } = await http.post<CsatReport>('/reports/csat', query)
+    return data
+  },
+  /** Returns the file itself; the caller saves it. */
+  async exportReport(kind: ReportKind, format: ExportFormat, query: ReportQuery, language: string) {
+    const { data } = await http.post(
+      '/reports/export',
+      { kind, format, query },
+      { params: { language }, responseType: 'blob' },
+    )
+    return data as Blob
+  },
+  async rateTicket(ticketId: string, score: number, comment?: string) {
+    const { data } = await http.post(`/tickets/${ticketId}/satisfaction`, {
+      score,
+      comment: comment ?? null,
+    })
+    return data
   },
 }

@@ -80,6 +80,14 @@ public static class Permissions
         public const string Publish = "kb.publish";
     }
 
+    /// <summary>Historical reporting (PDF area 8). Separate from the live dashboards: a
+    /// dashboard shows an agent their own queue, a report shows the desk's history.</summary>
+    public static class Reports
+    {
+        public const string View = "reports.view";
+        public const string Export = "reports.export";
+    }
+
     public static class Lookups
     {
         public const string View = "lookups.view";
@@ -110,6 +118,7 @@ public static class Permissions
         Tickets.ViewInternal, Tickets.Close, Tickets.Delete,
         Dashboard.View, Dashboard.ViewTeam,
         Sla.View, Sla.Manage,
+        Reports.View, Reports.Export,
         KnowledgeBase.View, KnowledgeBase.Manage, KnowledgeBase.Publish,
         Lookups.View, Lookups.Manage,
         AuditLogs.View,
