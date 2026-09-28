@@ -43,7 +43,8 @@
     "auditLogs": "Audit log",
     "settings": "System settings",
     "categories": "Ticket categories",
-    "sla": "Service levels"
+    "sla": "Service levels",
+    "team": "Team board"
   },
   "auth": {
     "signIn": "Sign in",
@@ -65,7 +66,11 @@
     "byStatus": "By status",
     "byPriority": "By priority",
     "myTickets": "My current tickets",
-    "empty": "No tickets are assigned to you right now"
+    "empty": "No tickets are assigned to you right now",
+    "mentions": "Mentions",
+    "noMentions": "You have not been mentioned",
+    "watching": "Watching",
+    "notWatching": "Not watching anything"
   },
   "customer": {
     "title": "Customers",
@@ -515,6 +520,47 @@
     "SlaAtRisk": "Ticket {ticketNumber} is at risk of breaching ({percent}%) — {ruleName}",
     "SlaBreached": "Ticket {ticketNumber} breached its SLA ({percent}%) — {ruleName}",
     "TicketCommented": "New comment on ticket {ticketNumber}",
-    "Mention": "You were mentioned on ticket {ticketNumber}"
+    "Mention": "You were mentioned on ticket {ticketNumber}",
+    "TaskDue": "Reminder due: {title}"
+  },
+  "task": {
+    "title": "My tasks",
+    "new": "New task",
+    "edit": "Edit task",
+    "titleField": "Title",
+    "notes": "Notes",
+    "dueAt": "Due",
+    "remindMe": "Remind me at this time",
+    "empty": "Nothing on your list",
+    "overdueCount": "{n} overdue",
+    "error": {
+      "titleRequired": "A title is required.",
+      "reminderNeedsDate": "A reminder needs a time to fire at."
+    }
+  },
+  "team": {
+    "title": "Team board",
+    "subtitle": "Workload and what is slipping",
+    "allDepartments": "All departments",
+    "workload": "Agent workload",
+    "workloadHint": "Sorted by most overdue first.",
+    "noAgents": "No agents",
+    "agent": "Agent",
+    "active": "Active",
+    "atRisk": "At risk",
+    "overdue": "Overdue",
+    "resolvedToday": "Resolved today",
+    "oldestUnassigned": "Longest unassigned",
+    "nothingUnassigned": "Everything is assigned",
+    "tile": {
+      "active": "Active",
+      "unassigned": "Unassigned",
+      "atRisk": "At risk",
+      "overdue": "Overdue",
+      "resolvedToday": "Resolved today"
+    }
+  },
+  "quickReply": {
+    "insert": "Quick reply"
   }
 }

@@ -7,6 +7,7 @@ using CustomerSupportCRM.Application.SavedViews;
 using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.SystemConfig;
 using CustomerSupportCRM.Application.Tickets;
+using CustomerSupportCRM.Application.Workspace;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +30,9 @@ public static class DependencyInjection
         services.AddScoped<IAutoAssignmentService, AutoAssignmentService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ISlaEvaluator, SlaEvaluator>();
+
+        services.AddScoped<IWorkspaceService, WorkspaceService>();
+        services.AddScoped<IReminderDispatcher, ReminderDispatcher>();
 
         services.AddSingleton<IClock, SystemClock>();
 

@@ -20,6 +20,12 @@ public interface ITicketService
 
     Task<IReadOnlyList<TicketHistoryDto>> GetHistoryAsync(Guid ticketId, CancellationToken ct = default);
 
+    /// <summary>List rows for a known set of ids, scoped like any other read. Lets other
+    /// features (an agent's mentions, their watch list) render ticket lists without
+    /// duplicating the projection and the agent-name resolution.</summary>
+    Task<IReadOnlyList<TicketListItemDto>> GetListItemsAsync(
+        IReadOnlyCollection<Guid> ticketIds, CancellationToken ct = default);
+
     Task<AgentDashboardDto> GetAgentDashboardAsync(Guid agentId, CancellationToken ct = default);
 
     // ---- Desk-scale operations (see TicketService.Operations.cs) ----

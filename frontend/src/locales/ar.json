@@ -43,7 +43,8 @@
     "auditLogs": "سجل التدقيق",
     "settings": "إعدادات النظام",
     "categories": "تصنيفات التذاكر",
-    "sla": "مستويات الخدمة"
+    "sla": "مستويات الخدمة",
+    "team": "لوحة الفريق"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -65,7 +66,11 @@
     "byStatus": "حسب الحالة",
     "byPriority": "حسب الأولوية",
     "myTickets": "تذاكري الحالية",
-    "empty": "لا توجد تذاكر مسندة إليك حالياً"
+    "empty": "لا توجد تذاكر مسندة إليك حالياً",
+    "mentions": "أُشير إليّ",
+    "noMentions": "لم يُشر إليك في أي تذكرة",
+    "watching": "أتابعها",
+    "notWatching": "لا تتابع أي تذكرة"
   },
   "customer": {
     "title": "العملاء",
@@ -515,6 +520,47 @@
     "SlaAtRisk": "التذكرة {ticketNumber} قاربت تجاوز مستوى الخدمة ({percent}٪) — {ruleName}",
     "SlaBreached": "التذكرة {ticketNumber} تجاوزت مستوى الخدمة ({percent}٪) — {ruleName}",
     "TicketCommented": "تعليق جديد على التذكرة {ticketNumber}",
-    "Mention": "تمت الإشارة إليك في التذكرة {ticketNumber}"
+    "Mention": "تمت الإشارة إليك في التذكرة {ticketNumber}",
+    "TaskDue": "حان موعد: {title}"
+  },
+  "task": {
+    "title": "مهامي",
+    "new": "مهمة جديدة",
+    "edit": "تعديل المهمة",
+    "titleField": "العنوان",
+    "notes": "ملاحظات",
+    "dueAt": "موعد الاستحقاق",
+    "remindMe": "ذكّرني في هذا الموعد",
+    "empty": "لا توجد مهام",
+    "overdueCount": "{n} متأخرة",
+    "error": {
+      "titleRequired": "العنوان مطلوب.",
+      "reminderNeedsDate": "التذكير يحتاج موعدًا ليُرسل فيه."
+    }
+  },
+  "team": {
+    "title": "لوحة الفريق",
+    "subtitle": "توزيع العمل والتذاكر المعرّضة للتأخير",
+    "allDepartments": "كل الأقسام",
+    "workload": "حِمل الوكلاء",
+    "workloadHint": "مرتّبة بالأكثر تأخيرًا أولًا.",
+    "noAgents": "لا يوجد وكلاء",
+    "agent": "الوكيل",
+    "active": "نشطة",
+    "atRisk": "قاربت التجاوز",
+    "overdue": "متأخرة",
+    "resolvedToday": "حُلّت اليوم",
+    "oldestUnassigned": "أقدم التذاكر بلا مسؤول",
+    "nothingUnassigned": "كل التذاكر مُسندة",
+    "tile": {
+      "active": "نشطة",
+      "unassigned": "بلا مسؤول",
+      "atRisk": "قاربت التجاوز",
+      "overdue": "متأخرة",
+      "resolvedToday": "حُلّت اليوم"
+    }
+  },
+  "quickReply": {
+    "insert": "رد سريع"
   }
 }

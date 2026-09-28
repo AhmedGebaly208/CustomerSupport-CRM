@@ -28,6 +28,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<TicketLink> TicketLinks => Set<TicketLink>();
     public DbSet<UserSavedView> UserSavedViews => Set<UserSavedView>();
 
+    public DbSet<AgentTask> AgentTasks => Set<AgentTask>();
+    public DbSet<QuickReply> QuickReplies => Set<QuickReply>();
+    public DbSet<TicketMention> TicketMentions => Set<TicketMention>();
+
     public DbSet<SlaPolicy> SlaPolicies => Set<SlaPolicy>();
     public DbSet<SlaTarget> SlaTargets => Set<SlaTarget>();
     public DbSet<SlaEscalationRule> SlaEscalationRules => Set<SlaEscalationRule>();

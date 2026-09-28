@@ -6,6 +6,7 @@ import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
+import Menu from 'primevue/menu'
 import Checkbox from 'primevue/checkbox'
 import Tag from 'primevue/tag'
 import Skeleton from 'primevue/skeleton'
@@ -18,7 +19,7 @@ import Dialog from 'primevue/dialog'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import TicketSidePanels from '@/components/TicketSidePanels.vue'
-import { authApi, slaApi, ticketsApi } from '@/api/services'
+import { authApi, slaApi, ticketsApi, workspaceApi } from '@/api/services'
 import SlaBadge from '@/components/SlaBadge.vue'
 import { problemMessage } from '@/api/client'
 import { useUiStore } from '@/stores/ui'
@@ -30,6 +31,7 @@ import {
   type TicketComment,
   type TicketDetail,
   type TicketHistoryEntry,
+  type QuickReply,
   type TicketSlaStatus,
 } from '@/types/api'
 
@@ -48,6 +50,26 @@ const agents = ref<Agent[]>([])
 const loading = ref(true)
 
 const newComment = ref('')
+
+/** Saved snippets the agent can drop into a reply. The body is inserted in the customer's
+ *  language, which is the ticket's, while the title lists in the agent's own. */
+const quickReplies = ref<QuickReply[]>([])
+const quickReplyMenu = ref()
+
+const quickReplyItems = computed(() =>
+  quickReplies.value.map((reply) => ({
+    label: ui.isArabic ? reply.titleAr : reply.titleEn,
+    command: () => insertQuickReply(reply),
+  })),
+)
+
+function insertQuickReply(reply: QuickReply) {
+  const body = ticket.value?.customerPreferredLanguage === 'en' ? reply.bodyEn : reply.bodyAr
+  // Appended rather than replacing, so a half-written reply is not thrown away.
+  newComment.value = newComment.value ? `${newComment.value}
+
+${body}` : body
+}
 const commentInternal = ref(false)
 const savingComment = ref(false)
 
@@ -82,6 +104,12 @@ async function load() {
       .then((s) => (slaStatus.value = s))
       // The ticket is readable without its badges, so this failure stays quiet.
       .catch(() => (slaStatus.value = null))
+
+    workspaceApi
+      .quickReplies()
+      .then((r) => (quickReplies.value = r))
+      // Snippets are a convenience; the reply box works without them.
+      .catch(() => (quickReplies.value = []))
 
     const [c, h, a] = await Promise.allSettled([
       ticketsApi.comments(props.id),
@@ -308,6 +336,17 @@ onMounted(load)
                   <Checkbox v-model="commentInternal" binary />
                   {{ t('ticket.internalComment') }}
                 </label>
+
+                <Button
+                  v-if="quickReplies.length > 0"
+                  icon="pi pi-bolt"
+                  :label="t('quickReply.insert')"
+                  text
+                  size="small"
+                  @click="quickReplyMenu?.toggle($event)"
+                />
+
+                <Menu ref="quickReplyMenu" :model="quickReplyItems" popup />
                 <span class="text-xs text-surface-500 dark:text-surface-400">
                   {{ commentInternal ? t('ticket.internalComment') : t('ticket.publicComment') }}
                 </span>

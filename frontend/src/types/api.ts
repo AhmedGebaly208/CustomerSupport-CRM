@@ -220,6 +220,90 @@ export interface NotificationList {
   unreadCount: number
 }
 
+// ---- Agent workspace (area 4) ----
+
+export interface AgentTask {
+  id: string
+  title: string
+  notes: string | null
+  ownerUserId: string
+  ownerName: string | null
+  dueAt: string | null
+  isDone: boolean
+  completedAt: string | null
+  isReminder: boolean
+  ticketId: string | null
+  ticketNumber: string | null
+  customerId: string | null
+  customerName: string | null
+  createdAt: string
+}
+
+export interface SaveAgentTaskRequest {
+  title: string
+  notes: string | null
+  dueAt: string | null
+  isReminder: boolean
+  ticketId: string | null
+  customerId: string | null
+}
+
+export interface QuickReply {
+  id: string
+  titleAr: string
+  titleEn: string
+  bodyAr: string
+  bodyEn: string
+  shortcut: string | null
+  isActive: boolean
+  departmentId: string | null
+  departmentNameAr: string | null
+  departmentNameEn: string | null
+  branchId: string | null
+}
+
+export interface SaveQuickReplyRequest {
+  titleAr: string
+  titleEn: string
+  bodyAr: string
+  bodyEn: string
+  shortcut: string | null
+  isActive: boolean
+  departmentId: string | null
+  branchId: string | null
+}
+
+export interface TeamMemberLoad {
+  agentId: string
+  agentNameAr: string
+  agentNameEn: string
+  departmentId: string | null
+  active: number
+  overdue: number
+  atRisk: number
+  resolvedToday: number
+}
+
+export interface TeamDashboard {
+  totalActive: number
+  totalUnassigned: number
+  totalOverdue: number
+  totalAtRisk: number
+  resolvedToday: number
+  byStatus: Record<number, number>
+  byPriority: Record<number, number>
+  members: TeamMemberLoad[]
+  oldestUnassigned: TicketListItem[]
+}
+
+export interface AgentWorkspace {
+  tickets: AgentDashboard
+  openTasks: AgentTask[]
+  overdueTaskCount: number
+  mentionedTickets: TicketListItem[]
+  watchedTickets: TicketListItem[]
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',
@@ -422,6 +506,7 @@ export interface TicketDetail {
   customerNameEn: string
   customerEmail: string | null
   customerPhone: string | null
+  customerPreferredLanguage: string
   categoryId: string | null
   categoryNameAr: string | null
   categoryNameEn: string | null

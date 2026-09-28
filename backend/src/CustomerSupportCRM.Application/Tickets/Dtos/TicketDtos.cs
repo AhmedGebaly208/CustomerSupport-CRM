@@ -66,6 +66,9 @@ public sealed record TicketDetailDto(
     string CustomerNameEn,
     string? CustomerEmail,
     string? CustomerPhone,
+    /// <summary>The customer's own language. A reply is written for them, so a quick-reply
+    /// snippet is inserted in this language rather than the agent's.</summary>
+    string CustomerPreferredLanguage,
     Guid? CategoryId,
     string? CategoryNameAr,
     string? CategoryNameEn,

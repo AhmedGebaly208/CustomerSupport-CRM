@@ -2,6 +2,8 @@ import { http } from './client'
 import type {
   Agent,
   AgentDashboard,
+  AgentTask,
+  AgentWorkspace,
   AttachmentDetail,
   AuditAction,
   AuditLogEntry,
@@ -33,7 +35,10 @@ import type {
   Lookup,
   NotificationList,
   PagedResult,
+  QuickReply,
+  SaveAgentTaskRequest,
   SaveCustomerRequest,
+  SaveQuickReplyRequest,
   SaveSlaEscalationRuleRequest,
   SaveSlaPolicyRequest,
   SavedView,
@@ -42,6 +47,7 @@ import type {
   SlaPreview,
   SlaPreviewRequest,
   Tag,
+  TeamDashboard,
   TicketComment,
   TicketDetail,
   TicketHistoryEntry,
@@ -610,5 +616,53 @@ export const notificationsApi = {
   },
   async markAllRead() {
     await http.post('/notifications/read-all')
+  },
+}
+
+export const workspaceApi = {
+  /** The signed-in agent's board. No id parameter — it is always the caller's own. */
+  async mine() {
+    const { data } = await http.get<AgentWorkspace>('/workspace/me')
+    return data
+  },
+  async team(departmentId?: string | null) {
+    const { data } = await http.get<TeamDashboard>('/workspace/team', { params: { departmentId } })
+    return data
+  },
+
+  async tasks(params: { includeDone?: boolean; dueBefore?: string; take?: number } = {}) {
+    const { data } = await http.get<AgentTask[]>('/workspace/tasks', { params })
+    return data
+  },
+  async createTask(request: SaveAgentTaskRequest) {
+    const { data } = await http.post<AgentTask>('/workspace/tasks', request)
+    return data
+  },
+  async updateTask(id: string, request: SaveAgentTaskRequest) {
+    const { data } = await http.put<AgentTask>(`/workspace/tasks/${id}`, request)
+    return data
+  },
+  async setTaskDone(id: string, done: boolean) {
+    const { data } = await http.post<AgentTask>(`/workspace/tasks/${id}/done`, null, { params: { done } })
+    return data
+  },
+  async deleteTask(id: string) {
+    await http.delete(`/workspace/tasks/${id}`)
+  },
+
+  async quickReplies() {
+    const { data } = await http.get<QuickReply[]>('/workspace/quick-replies')
+    return data
+  },
+  async createQuickReply(request: SaveQuickReplyRequest) {
+    const { data } = await http.post<QuickReply>('/workspace/quick-replies', request)
+    return data
+  },
+  async updateQuickReply(id: string, request: SaveQuickReplyRequest) {
+    const { data } = await http.put<QuickReply>(`/workspace/quick-replies/${id}`, request)
+    return data
+  },
+  async deleteQuickReply(id: string) {
+    await http.delete(`/workspace/quick-replies/${id}`)
   },
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
@@ -9,12 +9,14 @@ import Skeleton from 'primevue/skeleton'
 import Button from 'primevue/button'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
-import { ticketsApi } from '@/api/services'
+import { workspaceApi } from '@/api/services'
+import AgentTasksPanel from '@/components/AgentTasksPanel.vue'
+import TicketMiniList from '@/components/TicketMiniList.vue'
 import { problemMessage } from '@/api/client'
 import { useUiStore } from '@/stores/ui'
 import { useAuthStore } from '@/stores/auth'
 import { useFormat } from '@/composables/useFormat'
-import type { AgentDashboard } from '@/types/api'
+import type { AgentWorkspace } from '@/types/api'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -23,8 +25,12 @@ const ui = useUiStore()
 const auth = useAuthStore()
 const { formatDateTime, formatNumber, isOverdue } = useFormat()
 
-const board = ref<AgentDashboard | null>(null)
+const workspace = ref<AgentWorkspace | null>(null)
 const loading = ref(true)
+
+/** The board's ticket counters. Kept as a computed rather than a second request so the
+ *  whole page renders from one payload and cannot show panels from different moments. */
+const board = computed(() => workspace.value?.tickets ?? null)
 
 const tiles = () => [
   { key: 'assignedActive', icon: 'pi pi-inbox', value: board.value?.assignedActive ?? 0, tone: 'text-primary' },
@@ -37,7 +43,7 @@ const tiles = () => [
 async function load() {
   loading.value = true
   try {
-    board.value = await ticketsApi.agentDashboard()
+    workspace.value = await workspaceApi.mine()
   } catch (e) {
     toast.add({ severity: 'error', summary: problemMessage(e, t('error.loadFailed')), life: 5000 })
   } finally {
@@ -143,6 +149,28 @@ onMounted(load)
           </template>
         </Column>
       </DataTable>
+    </div>
+
+    <div class="mt-6 grid gap-4 lg:grid-cols-3">
+      <AgentTasksPanel
+        :tasks="workspace?.openTasks ?? []"
+        :overdue-count="workspace?.overdueTaskCount ?? 0"
+        @changed="load"
+      />
+
+      <TicketMiniList
+        :title="t('dashboard.mentions')"
+        icon="pi pi-at"
+        :tickets="workspace?.mentionedTickets ?? []"
+        :empty-text="t('dashboard.noMentions')"
+      />
+
+      <TicketMiniList
+        :title="t('dashboard.watching')"
+        icon="pi pi-eye"
+        :tickets="workspace?.watchedTickets ?? []"
+        :empty-text="t('dashboard.notWatching')"
+      />
     </div>
   </div>
 </template>

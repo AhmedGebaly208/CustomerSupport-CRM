@@ -42,5 +42,7 @@ public enum NotificationKind
     SlaAtRisk = 2,
     SlaBreached = 3,
     TicketCommented = 4,
-    Mention = 5
+    Mention = 5,
+    /// <summary>A personal reminder the agent set for themselves (PDF area 4).</summary>
+    TaskDue = 6
 }

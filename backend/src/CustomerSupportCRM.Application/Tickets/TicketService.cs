@@ -1,8 +1,10 @@
+using System.Linq.Expressions;
 using CustomerSupportCRM.Application.Common.Exceptions;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Common.Models;
 using CustomerSupportCRM.Application.Sla;
 using CustomerSupportCRM.Application.Tickets.Dtos;
+using CustomerSupportCRM.Application.Workspace;
 using CustomerSupportCRM.Domain.Common;
 using CustomerSupportCRM.Domain.Entities;
 using CustomerSupportCRM.Domain.Enums;
@@ -57,21 +59,7 @@ public sealed partial class TicketService : ITicketService
         var rows = await q
             .Skip(query.Skip)
             .Take(query.PageSize)
-            .Select(t => new TicketRow(
-                t.Id, t.Number, t.Subject, t.Status, t.Priority, t.Channel,
-                t.CustomerId,
-                t.Customer!.FullNameAr,
-                t.Customer.FullNameEn,
-                t.CategoryId,
-                t.Category != null ? t.Category.NameAr : null,
-                t.Category != null ? t.Category.NameEn : null,
-                t.AssignedAgentId,
-                t.Department != null ? t.Department.NameAr : null,
-                t.Department != null ? t.Department.NameEn : null,
-                t.EscalationLevel,
-                t.ResolutionDueAt,
-                t.CreatedAt,
-                t.ModifiedAt))
+            .Select(RowProjection)
             .ToListAsync(ct);
 
         var items = await ToListItemsAsync(rows, ct);
@@ -452,9 +440,66 @@ public sealed partial class TicketService : ITicketService
 
         await db.SaveChangesAsync(ct);
 
+        // After the save: a mention announces work that exists, and the comment row must be
+        // there before a mention can point at it.
+        await RecordMentionsAsync(ticket, comment, now, ct);
+
         var names = await ResolveNamesAsync([comment.AuthorId], ct);
         return new TicketCommentDto(comment.Id, ticketId, comment.Body, comment.IsInternal,
             comment.AuthorId, Lookup(names, comment.AuthorId), comment.CreatedAt);
+    }
+
+    /// <summary>Turns "@handle" in a comment into a mention row and a notification.
+    ///
+    /// Only staff can be mentioned, and only agents who can already reach the ticket: a
+    /// mention must not become a way to push a customer's details into the notification feed
+    /// of someone in another department.</summary>
+    private async Task RecordMentionsAsync(
+        Ticket ticket, TicketComment comment, DateTimeOffset now, CancellationToken ct)
+    {
+        var handles = MentionParser.Extract(comment.Body);
+        if (handles.Count == 0) return;
+
+        // Narrowed to the ticket's own department, so a mention cannot push a customer's
+        // details into the feed of someone who could not open the ticket. A ticket with no
+        // department belongs to the shared queue, where every agent is already eligible.
+        var candidates = await identity.GetAgentsAsync(ticket.DepartmentId, ct);
+
+        var matched = candidates
+            .Where(a => handles.Contains(a.Email.Split('@')[0], StringComparer.OrdinalIgnoreCase))
+            // Mentioning yourself is a no-op rather than a notification.
+            .Where(a => a.Id != currentUser.UserId)
+            .ToList();
+
+        if (matched.Count == 0) return;
+
+        var alreadyMentioned = await db.TicketMentions
+            .Where(m => m.TicketCommentId == comment.Id)
+            .Select(m => m.MentionedUserId)
+            .ToListAsync(ct);
+
+        var fresh = matched.Where(a => !alreadyMentioned.Contains(a.Id)).ToList();
+        if (fresh.Count == 0) return;
+
+        foreach (var agent in fresh)
+        {
+            db.TicketMentions.Add(new TicketMention
+            {
+                TicketId = ticket.Id,
+                TicketCommentId = comment.Id,
+                MentionedUserId = agent.Id,
+                MentionedByUserId = currentUser.UserId ?? Guid.Empty,
+                MentionedAt = now
+            });
+        }
+
+        await notifications.NotifyAsync(
+            fresh.Select(a => a.Id).ToList(),
+            new NotificationRequest(
+                NotificationKind.Mention,
+                new Dictionary<string, string> { ["ticketNumber"] = ticket.Number },
+                ticket.Id),
+            ct);
     }
 
     // ---- History ----
@@ -541,16 +586,7 @@ public sealed partial class TicketService : ITicketService
             .OrderByDescending(t => t.Priority)
             .ThenBy(t => t.CreatedAt)
             .Take(10)
-            .Select(t => new TicketRow(
-                t.Id, t.Number, t.Subject, t.Status, t.Priority, t.Channel,
-                t.CustomerId, t.Customer!.FullNameAr, t.Customer.FullNameEn,
-                t.CategoryId,
-                t.Category != null ? t.Category.NameAr : null,
-                t.Category != null ? t.Category.NameEn : null,
-                t.AssignedAgentId,
-                t.Department != null ? t.Department.NameAr : null,
-                t.Department != null ? t.Department.NameEn : null,
-                t.EscalationLevel, t.ResolutionDueAt, t.CreatedAt, t.ModifiedAt))
+            .Select(RowProjection)
             .ToListAsync(ct);
 
         return new AgentDashboardDto(
@@ -564,6 +600,25 @@ public sealed partial class TicketService : ITicketService
             await ToListItemsAsync(recentRows, ct));
     }
 
+    public async Task<IReadOnlyList<TicketListItemDto>> GetListItemsAsync(
+        IReadOnlyCollection<Guid> ticketIds, CancellationToken ct = default)
+    {
+        if (ticketIds.Count == 0) return [];
+
+        // Scoped like every other read: an id obtained from a mention or a watch row must
+        // not become a way around department scoping.
+        var rows = await scope.Apply(db.Tickets.AsNoTracking())
+            .Where(t => ticketIds.Contains(t.Id))
+            .Select(RowProjection)
+            .ToListAsync(ct);
+
+        var items = await ToListItemsAsync(rows, ct);
+
+        // Caller's order preserved, so "most recently mentioned" stays meaningful.
+        var byId = items.ToDictionary(i => i.Id);
+        return ticketIds.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+    }
+
     // ---- helpers ----
 
     /// <summary>Flat projection of the columns every ticket list needs. Kept as a record so
@@ -574,6 +629,20 @@ public sealed partial class TicketService : ITicketService
         Guid? CategoryId, string? CategoryNameAr, string? CategoryNameEn, Guid? AssignedAgentId,
         string? DepartmentNameAr, string? DepartmentNameEn, int EscalationLevel,
         DateTimeOffset? ResolutionDueAt, DateTimeOffset CreatedAt, DateTimeOffset? ModifiedAt);
+
+    /// <summary>The one place the list columns are chosen. An expression rather than a
+    /// method so EF still translates it, and shared so search, the dashboard and the by-id
+    /// lookup cannot drift apart.</summary>
+    private static readonly Expression<Func<Ticket, TicketRow>> RowProjection = t => new TicketRow(
+        t.Id, t.Number, t.Subject, t.Status, t.Priority, t.Channel,
+        t.CustomerId, t.Customer!.FullNameAr, t.Customer.FullNameEn,
+        t.CategoryId,
+        t.Category != null ? t.Category.NameAr : null,
+        t.Category != null ? t.Category.NameEn : null,
+        t.AssignedAgentId,
+        t.Department != null ? t.Department.NameAr : null,
+        t.Department != null ? t.Department.NameEn : null,
+        t.EscalationLevel, t.ResolutionDueAt, t.CreatedAt, t.ModifiedAt);
 
     private async Task<IReadOnlyList<TicketListItemDto>> ToListItemsAsync(IReadOnlyList<TicketRow> rows, CancellationToken ct)
     {
@@ -653,7 +722,7 @@ public sealed partial class TicketService : ITicketService
         IReadOnlyList<TicketLinkDto> links) => new(
         t.Id, t.Number, t.Subject, t.Description, t.Status, t.Priority, t.Channel,
         t.CustomerId, t.Customer!.Code, t.Customer.FullNameAr, t.Customer.FullNameEn,
-        t.Customer.Email, t.Customer.Phone,
+        t.Customer.Email, t.Customer.Phone, t.Customer.PreferredLanguage ?? "ar",
         t.CategoryId, t.Category?.NameAr, t.Category?.NameEn,
         t.AssignedAgentId, agentName, t.AssignedAt,
         t.DepartmentId, t.Department?.NameAr, t.Department?.NameEn,
