@@ -71,6 +71,15 @@ public static class Permissions
         public const string Manage = "sla.manage";
     }
 
+    /// <summary>The knowledge base (PDF area 6). Reading is separate from authoring because
+    /// every agent consults it while only some write it.</summary>
+    public static class KnowledgeBase
+    {
+        public const string View = "kb.view";
+        public const string Manage = "kb.manage";
+        public const string Publish = "kb.publish";
+    }
+
     public static class Lookups
     {
         public const string View = "lookups.view";
@@ -101,6 +110,7 @@ public static class Permissions
         Tickets.ViewInternal, Tickets.Close, Tickets.Delete,
         Dashboard.View, Dashboard.ViewTeam,
         Sla.View, Sla.Manage,
+        KnowledgeBase.View, KnowledgeBase.Manage, KnowledgeBase.Publish,
         Lookups.View, Lookups.Manage,
         AuditLogs.View,
         SystemConfig.View, SystemConfig.Manage

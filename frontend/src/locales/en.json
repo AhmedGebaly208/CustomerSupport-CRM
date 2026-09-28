@@ -44,7 +44,8 @@
     "settings": "System settings",
     "categories": "Ticket categories",
     "sla": "Service levels",
-    "team": "Team board"
+    "team": "Team board",
+    "kb": "Knowledge base"
   },
   "auth": {
     "signIn": "Sign in",
@@ -434,6 +435,10 @@
     "network": "Could not reach the server. Check your connection and try again.",
     "customers": {
       "duplicate-email": "Another customer is already registered with that email."
+    },
+    "kb": {
+      "article-incomplete": "Publishing requires content in both Arabic and English.",
+      "article-in-use": "Tickets reference this article. Archive it instead of deleting it."
     }
   },
   "sla": {
@@ -562,5 +567,61 @@
   },
   "quickReply": {
     "insert": "Quick reply"
+  },
+  "kb": {
+    "title": "Knowledge base",
+    "subtitle": "FAQs, guides and solutions",
+    "searchPlaceholder": "Search articles…",
+    "allCategories": "All categories",
+    "allStatuses": "All statuses",
+    "faqOnly": "FAQs only",
+    "faq": "FAQ",
+    "internal": "Internal",
+    "tags": "Tags",
+    "tagsHint": "Type a tag and press Enter",
+    "empty": "No articles yet",
+    "noResults": "Nothing matched",
+    "newArticle": "New article",
+    "editArticle": "Edit article",
+    "articleTitle": "Title",
+    "summary": "Summary",
+    "body": "Content",
+    "bodyHint": "Simple HTML is accepted: headings, paragraphs, lists, links, tables.",
+    "category": "Category",
+    "pickCategory": "Choose a category",
+    "publicToCustomers": "Visible to customers",
+    "arabicSide": "Arabic version",
+    "englishSide": "English version",
+    "changeNote": "Change note",
+    "changeNoteHint": "Shown in the version history",
+    "slugsLocked": "Permalinks are locked after first publish, so any link already shared keeps working.",
+    "publish": "Publish",
+    "archive": "Archive",
+    "versions": "Version history",
+    "version": "Version",
+    "noVersions": "No earlier versions",
+    "editedBy": "Edited by",
+    "editedAt": "When",
+    "restore": "Restore",
+    "restoreConfirm": "Restore version {n}? The current text is saved as a version first.",
+    "deleteConfirm": "Delete this article?",
+    "wasThisHelpful": "Was this helpful?",
+    "yes": "Yes",
+    "no": "No",
+    "voteCounts": "{up} helpful · {down} not helpful",
+    "linkToTicket": "Attach to ticket",
+    "linkedArticles": "Linked articles",
+    "noLinkedArticles": "No linked articles",
+    "status": {
+      "Draft": "Draft",
+      "Published": "Published",
+      "Archived": "Archived"
+    },
+    "error": {
+      "titleRequired": "A title is required in both Arabic and English.",
+      "categoryRequired": "A category is required.",
+      "bodyBothLanguages": "Publishing requires content in both Arabic and English."
+    },
+    "insertLink": "Insert link"
   }
 }

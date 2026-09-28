@@ -4,6 +4,13 @@ import type {
   AgentDashboard,
   AgentTask,
   AgentWorkspace,
+  ArticleCategory,
+  ArticleDetail,
+  ArticleSearchResult,
+  ArticleStatus,
+  ArticleTicketLink,
+  ArticleVersion,
+  ArticleVoteResult,
   AttachmentDetail,
   AuditAction,
   AuditLogEntry,
@@ -37,6 +44,8 @@ import type {
   PagedResult,
   QuickReply,
   SaveAgentTaskRequest,
+  SaveArticleCategoryRequest,
+  SaveArticleRequest,
   SaveCustomerRequest,
   SaveQuickReplyRequest,
   SaveSlaEscalationRuleRequest,
@@ -664,5 +673,87 @@ export const workspaceApi = {
   },
   async deleteQuickReply(id: string) {
     await http.delete(`/workspace/quick-replies/${id}`)
+  },
+}
+
+export const kbApi = {
+  async search(params: {
+    search?: string
+    categoryId?: string | null
+    tag?: string | null
+    status?: ArticleStatus | null
+    isFaq?: boolean | null
+    page?: number
+    pageSize?: number
+  } = {}) {
+    const { data } = await http.get<ArticleSearchResult>('/kb/articles', { params })
+    return data
+  },
+  async article(id: string) {
+    const { data } = await http.get<ArticleDetail>(`/kb/articles/${id}`)
+    return data
+  },
+  /** Resolves the stable identifier rather than the row id, so a shared link survives. */
+  async bySlug(slug: string) {
+    const { data } = await http.get<ArticleDetail>(`/kb/articles/by-slug/${encodeURIComponent(slug)}`)
+    return data
+  },
+  async create(request: SaveArticleRequest) {
+    const { data } = await http.post<ArticleDetail>('/kb/articles', request)
+    return data
+  },
+  async update(id: string, request: SaveArticleRequest) {
+    const { data } = await http.put<ArticleDetail>(`/kb/articles/${id}`, request)
+    return data
+  },
+  async setStatus(id: string, status: ArticleStatus) {
+    const { data } = await http.post<ArticleDetail>(`/kb/articles/${id}/status`, null, { params: { status } })
+    return data
+  },
+  async remove(id: string) {
+    await http.delete(`/kb/articles/${id}`)
+  },
+  async versions(id: string) {
+    const { data } = await http.get<ArticleVersion[]>(`/kb/articles/${id}/versions`)
+    return data
+  },
+  async restoreVersion(id: string, versionId: string) {
+    const { data } = await http.post<ArticleDetail>(`/kb/articles/${id}/versions/${versionId}/restore`)
+    return data
+  },
+  async recordView(id: string) {
+    await http.post(`/kb/articles/${id}/view`)
+  },
+  async vote(id: string, isHelpful: boolean) {
+    const { data } = await http.post<ArticleVoteResult>(`/kb/articles/${id}/vote`, { isHelpful })
+    return data
+  },
+
+  async categories(activeOnly = false) {
+    const { data } = await http.get<ArticleCategory[]>('/kb/categories', { params: { activeOnly } })
+    return data
+  },
+  async createCategory(request: SaveArticleCategoryRequest) {
+    const { data } = await http.post<ArticleCategory>('/kb/categories', request)
+    return data
+  },
+  async updateCategory(id: string, request: SaveArticleCategoryRequest) {
+    const { data } = await http.put<ArticleCategory>(`/kb/categories/${id}`, request)
+    return data
+  },
+  async deleteCategory(id: string) {
+    await http.delete(`/kb/categories/${id}`)
+  },
+
+  async ticketArticles(ticketId: string) {
+    const { data } = await http.get<ArticleTicketLink[]>(`/tickets/${ticketId}/articles`)
+    return data
+  },
+  async linkToTicket(ticketId: string, articleId: string) {
+    const { data } = await http.post<ArticleTicketLink>(`/tickets/${ticketId}/articles`, { articleId })
+    return data
+  },
+  async unlinkFromTicket(ticketId: string, linkId: string) {
+    await http.delete(`/tickets/${ticketId}/articles/${linkId}`)
   },
 }

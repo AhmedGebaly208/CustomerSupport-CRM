@@ -44,7 +44,8 @@
     "settings": "إعدادات النظام",
     "categories": "تصنيفات التذاكر",
     "sla": "مستويات الخدمة",
-    "team": "لوحة الفريق"
+    "team": "لوحة الفريق",
+    "kb": "قاعدة المعرفة"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -434,6 +435,10 @@
     "network": "تعذّر الاتصال بالخادم. تأكد من الاتصال وحاول مرة أخرى.",
     "customers": {
       "duplicate-email": "يوجد عميل آخر مسجّل بنفس البريد الإلكتروني."
+    },
+    "kb": {
+      "article-incomplete": "النشر يتطلب محتوى بالعربية والإنجليزية معًا.",
+      "article-in-use": "توجد تذاكر مرتبطة بهذا المقال. أرشفه بدل حذفه."
     }
   },
   "sla": {
@@ -562,5 +567,61 @@
   },
   "quickReply": {
     "insert": "رد سريع"
+  },
+  "kb": {
+    "title": "قاعدة المعرفة",
+    "subtitle": "الأسئلة الشائعة والأدلة والحلول",
+    "searchPlaceholder": "ابحث في المقالات…",
+    "allCategories": "كل التصنيفات",
+    "allStatuses": "كل الحالات",
+    "faqOnly": "الأسئلة الشائعة فقط",
+    "faq": "سؤال شائع",
+    "internal": "داخلي",
+    "tags": "الوسوم",
+    "tagsHint": "اكتب وسمًا واضغط Enter",
+    "empty": "لا توجد مقالات بعد",
+    "noResults": "لا توجد نتائج مطابقة",
+    "newArticle": "مقال جديد",
+    "editArticle": "تعديل المقال",
+    "articleTitle": "العنوان",
+    "summary": "ملخّص",
+    "body": "المحتوى",
+    "bodyHint": "يُقبل HTML بسيط: عناوين، فقرات، قوائم، روابط، جداول.",
+    "category": "التصنيف",
+    "pickCategory": "اختر تصنيفًا",
+    "publicToCustomers": "ظاهر للعملاء",
+    "arabicSide": "النسخة العربية",
+    "englishSide": "النسخة الإنجليزية",
+    "changeNote": "سبب التعديل",
+    "changeNoteHint": "يظهر في سجل النسخ",
+    "slugsLocked": "الروابط الثابتة مقفلة بعد أول نشر، حتى يظل أي رابط تمت مشاركته يعمل.",
+    "publish": "نشر",
+    "archive": "أرشفة",
+    "versions": "سجل النسخ",
+    "version": "النسخة",
+    "noVersions": "لا توجد نسخ سابقة",
+    "editedBy": "عدّلها",
+    "editedAt": "التاريخ",
+    "restore": "استعادة",
+    "restoreConfirm": "استعادة النسخة رقم {n}؟ سيتم حفظ النص الحالي كنسخة قبلها.",
+    "deleteConfirm": "هل تريد حذف هذا المقال؟",
+    "wasThisHelpful": "هل كان هذا المقال مفيدًا؟",
+    "yes": "نعم",
+    "no": "لا",
+    "voteCounts": "{up} مفيد · {down} غير مفيد",
+    "linkToTicket": "إرفاق بالتذكرة",
+    "linkedArticles": "مقالات مرتبطة",
+    "noLinkedArticles": "لا توجد مقالات مرتبطة",
+    "status": {
+      "Draft": "مسودة",
+      "Published": "منشور",
+      "Archived": "مؤرشف"
+    },
+    "error": {
+      "titleRequired": "العنوان مطلوب بالعربية والإنجليزية.",
+      "categoryRequired": "التصنيف مطلوب.",
+      "bodyBothLanguages": "النشر يتطلب محتوى بالعربية والإنجليزية معًا."
+    },
+    "insertLink": "إدراج الرابط"
   }
 }

@@ -47,6 +47,9 @@ public static class RolePermissions
 
                 Permissions.Sla.View, Permissions.Sla.Manage,
 
+                Permissions.KnowledgeBase.View, Permissions.KnowledgeBase.Manage,
+                Permissions.KnowledgeBase.Publish,
+
                 Permissions.Lookups.View, Permissions.Lookups.Manage,
                 Permissions.AuditLogs.View,
                 Permissions.SystemConfig.View
@@ -69,6 +72,10 @@ public static class RolePermissions
                 // Agents read the targets they are measured against but do not set them.
                 Permissions.Sla.View,
 
+                // Agents consult the knowledge base and draft articles from what they learn
+                // on a ticket, but publishing is an editorial decision.
+                Permissions.KnowledgeBase.View, Permissions.KnowledgeBase.Manage,
+
                 Permissions.Lookups.View
             ],
 
@@ -79,6 +86,9 @@ public static class RolePermissions
                 Permissions.Tickets.View,
                 Permissions.Tickets.Create,
                 Permissions.Tickets.Comment,
+
+                // Portal self-service. The service filters to published, public articles.
+                Permissions.KnowledgeBase.View,
 
                 // A portal customer sees files on their own tickets; the portal story
                 // scopes which tickets those are.

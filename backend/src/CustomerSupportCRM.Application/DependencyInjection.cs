@@ -2,6 +2,7 @@ using System.Reflection;
 using CustomerSupportCRM.Application.AuditLogs;
 using CustomerSupportCRM.Application.Common.Interfaces;
 using CustomerSupportCRM.Application.Customers;
+using CustomerSupportCRM.Application.KnowledgeBase;
 using CustomerSupportCRM.Application.Lookups;
 using CustomerSupportCRM.Application.SavedViews;
 using CustomerSupportCRM.Application.Sla;
@@ -31,6 +32,8 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ISlaEvaluator, SlaEvaluator>();
 
+        services.AddScoped<IArticleService, ArticleService>();
+        services.AddScoped<IArticleCategoryService, ArticleCategoryService>();
         services.AddScoped<IWorkspaceService, WorkspaceService>();
         services.AddScoped<IReminderDispatcher, ReminderDispatcher>();
 

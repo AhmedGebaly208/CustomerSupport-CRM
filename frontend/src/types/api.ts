@@ -304,6 +304,147 @@ export interface AgentWorkspace {
   watchedTickets: TicketListItem[]
 }
 
+// ---- Knowledge base (area 6) ----
+
+export enum ArticleStatus {
+  Draft = 0,
+  Published = 1,
+  Archived = 2,
+}
+
+export interface ArticleCategory {
+  id: string
+  parentId: string | null
+  nameAr: string
+  nameEn: string
+  sortOrder: number
+  isActive: boolean
+  departmentId: string | null
+  articleCount: number
+  children: ArticleCategory[]
+}
+
+export interface SaveArticleCategoryRequest {
+  parentId: string | null
+  nameAr: string
+  nameEn: string
+  sortOrder: number
+  isActive: boolean
+  departmentId: string | null
+  branchId: string | null
+}
+
+export interface ArticleTag {
+  slug: string
+  labelAr: string
+  labelEn: string
+}
+
+export interface ArticleListItem {
+  id: string
+  categoryId: string
+  categoryNameAr: string
+  categoryNameEn: string
+  titleAr: string
+  titleEn: string
+  slugAr: string
+  slugEn: string
+  summaryAr: string | null
+  summaryEn: string | null
+  status: ArticleStatus
+  isFaq: boolean
+  isPublic: boolean
+  viewCount: number
+  helpfulCount: number
+  notHelpfulCount: number
+  publishedAt: string | null
+  modifiedAt: string | null
+  tags: ArticleTag[]
+  excerpt: string | null
+}
+
+export interface ArticleDetail {
+  id: string
+  categoryId: string
+  categoryNameAr: string
+  categoryNameEn: string
+  titleAr: string
+  titleEn: string
+  slugAr: string
+  slugEn: string
+  summaryAr: string | null
+  summaryEn: string | null
+  bodyAr: string
+  bodyEn: string
+  status: ArticleStatus
+  isFaq: boolean
+  isPublic: boolean
+  authorUserId: string | null
+  authorName: string | null
+  viewCount: number
+  helpfulCount: number
+  notHelpfulCount: number
+  publishedAt: string | null
+  firstPublishedAt: string | null
+  createdAt: string
+  modifiedAt: string | null
+  departmentId: string | null
+  branchId: string | null
+  tags: ArticleTag[]
+  slugsLocked: boolean
+}
+
+export interface SaveArticleRequest {
+  categoryId: string
+  titleAr: string
+  titleEn: string
+  summaryAr: string | null
+  summaryEn: string | null
+  bodyAr: string
+  bodyEn: string
+  isFaq: boolean
+  isPublic: boolean
+  departmentId: string | null
+  branchId: string | null
+  tags: ArticleTag[] | null
+  changeNote: string | null
+}
+
+export interface ArticleVersion {
+  id: string
+  versionNumber: number
+  titleAr: string
+  titleEn: string
+  status: ArticleStatus
+  editorUserId: string | null
+  editorName: string | null
+  editedAt: string
+  changeNote: string | null
+}
+
+export interface ArticleVoteResult {
+  helpfulCount: number
+  notHelpfulCount: number
+  yourVote: boolean
+}
+
+export interface ArticleTicketLink {
+  id: string
+  articleId: string
+  titleAr: string
+  titleEn: string
+  slugAr: string
+  slugEn: string
+  linkedByUserId: string | null
+  linkedByName: string | null
+  linkedAt: string
+}
+
+export interface ArticleSearchResult {
+  results: PagedResult<ArticleListItem>
+  availableTags: ArticleTag[]
+}
+
 export const PERMISSIONS = {
   usersView: 'users.view',
   usersManage: 'users.manage',
@@ -326,6 +467,9 @@ export const PERMISSIONS = {
   ticketsDelete: 'tickets.delete',
   dashboardView: 'dashboard.view',
   dashboardViewTeam: 'dashboard.viewteam',
+  kbView: 'kb.view',
+  kbManage: 'kb.manage',
+  kbPublish: 'kb.publish',
   slaView: 'sla.view',
   slaManage: 'sla.manage',
   lookupsView: 'lookups.view',

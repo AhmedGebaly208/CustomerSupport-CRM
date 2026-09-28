@@ -25,6 +25,13 @@ public interface IAppDbContext
     DbSet<TicketLink> TicketLinks { get; }
     DbSet<UserSavedView> UserSavedViews { get; }
 
+    DbSet<ArticleCategory> ArticleCategories { get; }
+    DbSet<Article> Articles { get; }
+    DbSet<ArticleTag> ArticleTags { get; }
+    DbSet<ArticleVersion> ArticleVersions { get; }
+    DbSet<ArticleVote> ArticleVotes { get; }
+    DbSet<ArticleTicketLink> ArticleTicketLinks { get; }
+
     DbSet<AgentTask> AgentTasks { get; }
     DbSet<QuickReply> QuickReplies { get; }
     DbSet<TicketMention> TicketMentions { get; }

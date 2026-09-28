@@ -28,6 +28,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<TicketLink> TicketLinks => Set<TicketLink>();
     public DbSet<UserSavedView> UserSavedViews => Set<UserSavedView>();
 
+    public DbSet<ArticleCategory> ArticleCategories => Set<ArticleCategory>();
+    public DbSet<Article> Articles => Set<Article>();
+    public DbSet<ArticleTag> ArticleTags => Set<ArticleTag>();
+    public DbSet<ArticleVersion> ArticleVersions => Set<ArticleVersion>();
+    public DbSet<ArticleVote> ArticleVotes => Set<ArticleVote>();
+    public DbSet<ArticleTicketLink> ArticleTicketLinks => Set<ArticleTicketLink>();
+
     public DbSet<AgentTask> AgentTasks => Set<AgentTask>();
     public DbSet<QuickReply> QuickReplies => Set<QuickReply>();
     public DbSet<TicketMention> TicketMentions => Set<TicketMention>();

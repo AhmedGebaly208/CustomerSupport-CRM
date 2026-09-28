@@ -66,6 +66,10 @@ public static class ErrorCodes
     // SLA.
     public const string SlaPolicyInUse = "sla.policy-in-use";
 
+    // Knowledge base.
+    public const string ArticleIncomplete = "kb.article-incomplete";
+    public const string ArticleInUse = "kb.article-in-use";
+
     // Surfaced by the middleware rather than by a call site.
     public const string ValidationFailed = "validation-failed";
     public const string Unexpected = "unexpected";

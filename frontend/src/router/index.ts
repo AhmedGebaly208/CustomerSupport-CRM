@@ -73,6 +73,32 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: PERMISSIONS.lookupsManage },
       },
       {
+        path: 'kb',
+        name: 'kb',
+        component: () => import('@/views/kb/KnowledgeBaseView.vue'),
+        meta: { permission: PERMISSIONS.kbView },
+      },
+      {
+        path: 'kb/new',
+        name: 'kb-article-new',
+        component: () => import('@/views/kb/ArticleEditView.vue'),
+        meta: { permission: PERMISSIONS.kbManage },
+      },
+      {
+        path: 'kb/:id/edit',
+        name: 'kb-article-edit',
+        component: () => import('@/views/kb/ArticleEditView.vue'),
+        props: true,
+        meta: { permission: PERMISSIONS.kbManage },
+      },
+      {
+        path: 'kb/:id',
+        name: 'kb-article',
+        component: () => import('@/views/kb/ArticleDetailView.vue'),
+        props: true,
+        meta: { permission: PERMISSIONS.kbView },
+      },
+      {
         path: 'team',
         name: 'team-dashboard',
         component: () => import('@/views/dashboard/TeamDashboardView.vue'),

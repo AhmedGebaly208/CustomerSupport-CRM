@@ -7,5 +7,8 @@ public enum AttachmentOwnerType
     Customer = 0,
     Ticket = 1,
     TicketComment = 2,
-    Interaction = 3
+    Interaction = 3,
+
+    /// <summary>Images and downloads inside a knowledge-base article (PDF area 6).</summary>
+    Article = 4
 }
