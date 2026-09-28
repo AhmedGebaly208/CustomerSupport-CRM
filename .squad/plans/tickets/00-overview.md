@@ -48,7 +48,8 @@ server — validated as well-formed JSON and size-capped, never interpreted — 
 filter to the list page needs no backend change. Scoped entirely to the caller's token; no
 user id appears in any route or payload.
 
-**Category administration.** `TicketCategoriesController` with create, update, reorder,
+**Category administration.** `views/admin/categories/CategoryAdminView.vue` over
+`TicketCategoriesController` with create, update, reorder,
 activate/deactivate and delete. Deactivating hides a category from pickers but leaves
 existing tickets untouched, so historical reporting does not shift. Deleting is refused
 while active tickets or sub-categories reference it. Cycle guard on both single edits and
@@ -83,10 +84,10 @@ Migration `TicketOpsFeatures`: 5 new tables, 8 indexes, no destructive operation
   usage; the behaviour above was verified over HTTP against SQL Server instead. The 117
   existing tests still pass. Worth adding later for the merge path and the category cycle
   guard, which are the two places where a regression would be quiet.
-- **Category admin UI.** The API is complete and the locale keys exist, but no
-  `CategoryAdminView.vue` was built. The tree is still editable only via the API.
-- **Drag-and-drop reorder in the UI.** The `reorder` endpoint takes the whole proposed
-  shape at once and is ready for it.
+- **Drag-and-drop reorder.** The admin screen moves a category among its siblings with
+  up/down buttons, which sends the whole sibling list through the same `reorder` endpoint.
+  True drag-and-drop would need a tree DnD library; the endpoint already accepts the whole
+  proposed shape, so it is a UI change only.
 
 ## Notes for whoever picks this up
 

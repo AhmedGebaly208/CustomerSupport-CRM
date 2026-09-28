@@ -41,7 +41,8 @@
     "administration": "Administration",
     "users": "Users & permissions",
     "auditLogs": "Audit log",
-    "settings": "System settings"
+    "settings": "System settings",
+    "categories": "Ticket categories"
   },
   "auth": {
     "signIn": "Sign in",
@@ -365,6 +366,9 @@
     "activate": "Activate",
     "deactivateHint": "A deactivated category disappears from pickers; existing tickets keep it",
     "deleteConfirm": "Delete the category {name}?",
-    "saved": "Category saved"
+    "saved": "Category saved",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "addChild": "Add a sub-category"
   }
 }

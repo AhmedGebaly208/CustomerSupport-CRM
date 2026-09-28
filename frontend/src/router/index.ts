@@ -67,6 +67,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: PERMISSIONS.usersManage },
       },
       {
+        path: 'admin/categories',
+        name: 'ticket-categories',
+        component: () => import('@/views/admin/categories/CategoryAdminView.vue'),
+        meta: { permission: PERMISSIONS.lookupsManage },
+      },
+      {
         path: 'admin/settings',
         name: 'system-config',
         component: () => import('@/views/admin/settings/SystemConfigView.vue'),

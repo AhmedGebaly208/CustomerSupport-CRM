@@ -31,6 +31,10 @@ const navItems = computed(() => {
     items.push({ label: t('nav.users'), icon: 'pi pi-user-edit', to: { name: 'users' } })
   }
 
+  if (auth.hasPermission(PERMISSIONS.lookupsManage)) {
+    items.push({ label: t('nav.categories'), icon: 'pi pi-sitemap', to: { name: 'ticket-categories' } })
+  }
+
   if (auth.hasPermission(PERMISSIONS.auditLogsView)) {
     items.push({ label: t('nav.auditLogs'), icon: 'pi pi-history', to: { name: 'audit-logs' } })
   }
