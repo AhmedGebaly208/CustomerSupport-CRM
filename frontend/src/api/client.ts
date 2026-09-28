@@ -130,7 +130,28 @@ export function problemMessage(error: unknown, fallback: string): string {
     if (first) return first
   }
 
-  return problem?.detail ?? problem?.title ?? error.message ?? fallback
+  if (problem?.detail) return problem.detail
+
+  // No problem body: a gateway error, a dropped connection, or a 401 the refresh could not
+  // recover. axios' own `error.message` is untranslated developer text like "Request failed
+  // with status code 401", so it is never shown — a message keyed off the status is both
+  // translated and more useful.
+  return translateStatus(error.response?.status) ?? fallback
+}
+
+function translateStatus(status: number | undefined): string | null {
+  if (status === undefined) return translateErrorCode('network')
+
+  const byStatus: Record<number, string> = {
+    401: 'auth.session-expired',
+    403: 'forbidden',
+    404: 'not-found',
+    409: 'conflict',
+    400: 'bad-request',
+  }
+
+  const code = byStatus[status]
+  return code ? translateErrorCode(code) : translateErrorCode('unexpected')
 }
 
 function translateErrorCode(code: string | undefined): string | null {

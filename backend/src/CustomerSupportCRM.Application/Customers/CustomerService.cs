@@ -189,7 +189,13 @@ public sealed partial class CustomerService : ICustomerService
         {
             db.CustomerContacts.RemoveRange(customer.Contacts);
             customer.Contacts.Clear();
-            AddContacts(customer, request.Contacts);
+
+            // The replacements go through the DbSet rather than customer.Contacts. Ids are
+            // generated in the domain, and an entity discovered through the navigation of an
+            // already-tracked parent with its key set is treated as an existing row: EF then
+            // issues an UPDATE for a row that was never inserted, which fails the save with a
+            // concurrency error. Adding to the set states the intent and always inserts.
+            db.CustomerContacts.AddRange(BuildContacts(customer.Id, request.Contacts));
         }
 
         await db.SaveChangesAsync(ct);
@@ -382,7 +388,9 @@ public sealed partial class CustomerService : ICustomerService
             .AnyAsync(c => c.Email == normalized && (excludeId == null || c.Id != excludeId), ct);
 
         if (clash)
-            throw new ConflictException($"Another customer already uses the email '{normalized}'.");
+            throw new ConflictException(
+                $"Another customer already uses the email '{normalized}'.",
+                ErrorCodes.DuplicateCustomerEmail);
     }
 
     private async Task GuardLookupsAsync(Guid? departmentId, Guid? branchId, CancellationToken ct)
@@ -394,21 +402,34 @@ public sealed partial class CustomerService : ICustomerService
             throw new BadRequestException("The selected branch does not exist.");
     }
 
+    /// <summary>Used when the customer itself is new, so the children ride along with the
+    /// parent's insert.</summary>
     private static void AddContacts(Customer customer, IReadOnlyList<SaveCustomerContactRequest>? contacts)
     {
-        if (contacts is null) return;
-
-        foreach (var contact in contacts.Where(c => !string.IsNullOrWhiteSpace(c.Value)))
+        foreach (var contact in BuildContacts(customer.Id, contacts))
         {
-            customer.Contacts.Add(new CustomerContact
+            customer.Contacts.Add(contact);
+        }
+    }
+
+    /// <summary>Blank values are dropped rather than rejected: an empty row in the contacts
+    /// editor means the user did not fill it in, not that the request is invalid.</summary>
+    private static List<CustomerContact> BuildContacts(
+        Guid customerId, IReadOnlyList<SaveCustomerContactRequest>? contacts)
+    {
+        if (contacts is null) return [];
+
+        return contacts
+            .Where(c => !string.IsNullOrWhiteSpace(c.Value))
+            .Select(contact => new CustomerContact
             {
-                CustomerId = customer.Id,
+                CustomerId = customerId,
                 Type = contact.Type,
                 Value = contact.Value.Trim(),
                 Label = Normalize(contact.Label),
                 IsPrimary = contact.IsPrimary
-            });
-        }
+            })
+            .ToList();
     }
 
     private static CustomerDetailDto ToDetail(Customer c) => new(

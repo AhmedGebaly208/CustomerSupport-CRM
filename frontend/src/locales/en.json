@@ -422,7 +422,12 @@
     "auth": {
       "invalid-credentials": "Invalid email or password.",
       "invalid-refresh-token": "Your session has expired. Please sign in again.",
-      "not-authenticated": "Please sign in to continue."
+      "not-authenticated": "Please sign in to continue.",
+      "session-expired": "Your session has expired. Please sign in again."
+    },
+    "network": "Could not reach the server. Check your connection and try again.",
+    "customers": {
+      "duplicate-email": "Another customer is already registered with that email."
     }
   }
 }

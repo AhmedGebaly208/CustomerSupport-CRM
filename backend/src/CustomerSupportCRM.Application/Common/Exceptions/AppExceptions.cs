@@ -60,6 +60,9 @@ public static class ErrorCodes
     public const string InvalidRefreshToken = "auth.invalid-refresh-token";
     public const string NotAuthenticated = "auth.not-authenticated";
 
+    // Customers.
+    public const string DuplicateCustomerEmail = "customers.duplicate-email";
+
     // Surfaced by the middleware rather than by a call site.
     public const string ValidationFailed = "validation-failed";
     public const string Unexpected = "unexpected";
