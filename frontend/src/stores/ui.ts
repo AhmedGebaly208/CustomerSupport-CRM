@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { usePrimeVue } from 'primevue/config'
 import { i18n, isRtl, LOCALE_STORAGE_KEY, readStoredLocale, type AppLocale } from '@/i18n'
+import { primeVueLocale } from '@/locales/primevue'
 
 const THEME_STORAGE_KEY = 'crm.theme'
 
@@ -12,6 +14,10 @@ export type AppTheme = 'light' | 'dark'
  * properties and native form controls all pick them up from one place.
  */
 export const useUiStore = defineStore('ui', () => {
+  // Resolved once here rather than inside the watcher: usePrimeVue() reads an injection,
+  // which is only available while the store's setup is running.
+  const primevue = usePrimeVue()
+
   const locale = ref<AppLocale>(readStoredLocale())
   const theme = ref<AppTheme>(
     (localStorage.getItem(THEME_STORAGE_KEY) as AppTheme | null) ??
@@ -55,6 +61,8 @@ export const useUiStore = defineStore('ui', () => {
     locale,
     (value) => {
       i18n.global.locale.value = value
+      // PrimeVue's built-in strings live in its own config, not in our message files.
+      primevue.config.locale = primeVueLocale(value)
       localStorage.setItem(LOCALE_STORAGE_KEY, value)
 
       const root = document.documentElement

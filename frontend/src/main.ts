@@ -9,7 +9,8 @@ import Tooltip from 'primevue/tooltip'
 import App from './App.vue'
 import { router } from './router'
 import { useBrandingStore } from '@/stores/branding'
-import { i18n } from './i18n'
+import { i18n, readStoredLocale } from './i18n'
+import { primeVueLocale } from '@/locales/primevue'
 
 import 'primeicons/primeicons.css'
 import '@/assets/main.css'
@@ -29,6 +30,10 @@ app.use(PrimeVue, {
     },
   },
   ripple: true,
+  // PrimeVue keeps its own message table, separate from vue-i18n. Without this its
+  // components render English regardless of the app language; the UI store swaps it
+  // whenever the user switches.
+  locale: primeVueLocale(readStoredLocale()),
 })
 app.use(ToastService)
 app.use(ConfirmationService)

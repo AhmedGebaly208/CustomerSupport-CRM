@@ -52,7 +52,7 @@ public sealed partial class IdentityService : IIdentityService
             || !user.IsActive
             || !await userManager.CheckPasswordAsync(user, request.Password))
         {
-            throw new ForbiddenException("Invalid email or password.");
+            throw new ForbiddenException("Invalid email or password.", ErrorCodes.InvalidCredentials);
         }
 
         return await IssueTokensAsync(user, cancellationToken);
@@ -61,13 +61,13 @@ public sealed partial class IdentityService : IIdentityService
     public async Task<AuthResponse> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.RefreshToken))
-            throw new ForbiddenException("Invalid refresh token.");
+            throw new ForbiddenException("Invalid refresh token.", ErrorCodes.InvalidRefreshToken);
 
         var user = await userManager.Users
             .FirstOrDefaultAsync(u => u.RefreshToken == request.RefreshToken, cancellationToken);
 
         if (user is null || user.RefreshTokenExpiresAt is null || user.RefreshTokenExpiresAt < clock.UtcNow)
-            throw new ForbiddenException("The refresh token is invalid or has expired.");
+            throw new ForbiddenException("The refresh token is invalid or has expired.", ErrorCodes.InvalidRefreshToken);
 
         // An account deactivated after the token was issued must not be able to refresh.
         // Revoke on the way out so a stolen token is spent as well as refused.
@@ -77,7 +77,7 @@ public sealed partial class IdentityService : IIdentityService
             user.RefreshTokenExpiresAt = null;
             await userManager.UpdateAsync(user);
 
-            throw new ForbiddenException("The refresh token is invalid or has expired.");
+            throw new ForbiddenException("The refresh token is invalid or has expired.", ErrorCodes.InvalidRefreshToken);
         }
 
         return await IssueTokensAsync(user, cancellationToken);

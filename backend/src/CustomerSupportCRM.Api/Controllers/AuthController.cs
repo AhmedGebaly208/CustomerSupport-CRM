@@ -29,7 +29,7 @@ public sealed class AuthController(IIdentityService identity, ICurrentUser curre
     [ProducesResponseType<CurrentUserDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<CurrentUserDto>> Me(CancellationToken ct)
     {
-        var userId = currentUser.UserId ?? throw new ForbiddenException("Not authenticated.");
+        var userId = currentUser.UserId ?? throw new ForbiddenException("Not authenticated.", ErrorCodes.NotAuthenticated);
         return Ok(await identity.GetCurrentUserAsync(userId, ct));
     }
 
@@ -40,7 +40,7 @@ public sealed class AuthController(IIdentityService identity, ICurrentUser curre
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request, CancellationToken ct)
     {
-        var userId = currentUser.UserId ?? throw new ForbiddenException("Not authenticated.");
+        var userId = currentUser.UserId ?? throw new ForbiddenException("Not authenticated.", ErrorCodes.NotAuthenticated);
         await identity.ChangePasswordAsync(userId, request, ct);
         return NoContent();
     }

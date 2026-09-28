@@ -63,7 +63,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
                     Status = StatusCodes.Status400BadRequest,
                     Title = "One or more validation errors occurred.",
                     Instance = context.Request.Path,
-                    Extensions = { ["traceId"] = traceId }
+                    Extensions =
+                    {
+                        ["traceId"] = traceId,
+                        ["errorCode"] = ErrorCodes.ValidationFailed
+                    }
                 };
             }
 
@@ -77,7 +81,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
                     Title = TitleFor(app.StatusCode),
                     Detail = app.Message,
                     Instance = context.Request.Path,
-                    Extensions = { ["traceId"] = traceId }
+                    Extensions =
+                    {
+                        ["traceId"] = traceId,
+                        ["errorCode"] = app.ErrorCode
+                    }
                 };
 
             case OperationCanceledException:
@@ -100,7 +108,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
                     Title = "An unexpected error occurred.",
                     Detail = "Please try again. Quote the trace id if you contact support.",
                     Instance = context.Request.Path,
-                    Extensions = { ["traceId"] = traceId }
+                    Extensions =
+                    {
+                        ["traceId"] = traceId,
+                        ["errorCode"] = ErrorCodes.Unexpected
+                    }
                 };
         }
     }

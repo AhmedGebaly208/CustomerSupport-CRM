@@ -4,6 +4,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import type { AuthResponse, ProblemDetails } from '@/types/api'
+import { i18n } from '@/i18n'
 
 const STORAGE_KEY = 'crm.auth'
 
@@ -109,17 +110,36 @@ http.interceptors.response.use(
 )
 
 /** Extracts a display message from an RFC 7807 response, falling back sensibly. */
+/**
+ * Turns a failed request into a message for the user.
+ *
+ * The server sends a language-neutral `errorCode` alongside its English `detail`. When we
+ * have a translation for the code we use it, so the message follows the user's locale
+ * rather than the server's. Codes we have not translated yet fall back to `detail`, which
+ * is readable but English — that is the intended interim state while codes are added.
+ */
 export function problemMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError<ProblemDetails>(error)) {
-    const problem = error.response?.data
+  if (!axios.isAxiosError<ProblemDetails>(error)) return fallback
 
-    if (problem?.errors) {
-      const first = Object.values(problem.errors).flat()[0]
-      if (first) return first
-    }
+  const problem = error.response?.data
+  const translated = translateErrorCode(problem?.errorCode)
+  if (translated) return translated
 
-    return problem?.detail ?? problem?.title ?? error.message ?? fallback
+  if (problem?.errors) {
+    const first = Object.values(problem.errors).flat()[0]
+    if (first) return first
   }
 
-  return fallback
+  return problem?.detail ?? problem?.title ?? error.message ?? fallback
+}
+
+function translateErrorCode(code: string | undefined): string | null {
+  if (!code) return null
+
+  const key = `apiError.${code}`
+  // te() is checked against the active locale so a key present only in the fallback file
+  // does not silently render English inside an Arabic screen.
+  if (!i18n.global.te(key, i18n.global.locale.value)) return null
+
+  return i18n.global.t(key)
 }

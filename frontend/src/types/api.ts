@@ -564,6 +564,9 @@ export interface ProblemDetails {
   detail?: string
   instance?: string
   traceId?: string
+  /** Language-neutral failure identifier. The UI translates this; `detail` is the
+   *  server's English text and is only a fallback for codes with no translation. */
+  errorCode?: string
   errors?: Record<string, string[]>
 }
 

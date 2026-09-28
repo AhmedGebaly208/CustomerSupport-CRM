@@ -411,5 +411,18 @@
     "succeeded": "{count} succeeded",
     "failed": "{count} failed",
     "row": "Row"
+  },
+  "apiError": {
+    "not-found": "The requested item was not found.",
+    "conflict": "That action conflicts with the current state.",
+    "forbidden": "You do not have permission to do that.",
+    "bad-request": "The request was not valid.",
+    "validation-failed": "Some values are not valid. Please review the fields.",
+    "unexpected": "Something went wrong. Please try again.",
+    "auth": {
+      "invalid-credentials": "Invalid email or password.",
+      "invalid-refresh-token": "Your session has expired. Please sign in again.",
+      "not-authenticated": "Please sign in to continue."
+    }
   }
 }
